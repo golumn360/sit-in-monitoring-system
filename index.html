@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Sit-In Monitoring System | College of Computer Studies</title>
+  </head>
+  <body>
+    <main>
+      <section class="landing-page" id="landingPage">
+        <div class="navbar">
+          <div class="nav-left">
+            <img src="uclogo.png" />
+            <h2 class="navbar-title">UNIVERSITY OF CEBU</h2>
+          </div>
+
+          <ul>
+            <li><a href="">Home</a></li>
+            <li><a href="">Community</a></li>
+            <li><a href="">About</a></li>
+            <li><a href="" id="loginLink">Log In</a></li>
+            <li><a href="#" id="registerLink">Register</a></li>
+          </ul>
+        </div>
+        <div class="Main-Home">
+          <div class="Left-Content">
+            <div class="box-logo">
+              <img src="ccslogo.png" />
+            </div>
+          </div>
+          <div class="Right-Content">
+            <h1 class="ccs-title">
+              College of Computer Studies<br />
+              Sit-in Monitoring System
+            </h1>
+            <p class="intro">
+              Welcome to my CCS Sit In Monitoring System By Emmanuel M. Andrade.
+            </p>
+            <div class="right-buttons">
+              <button class="about-button">About Us</button>
+              <button class="register-button" id="registerNow">Register</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="registration-page" id="registrationPage">
+        <button class="back-button" id="back">Back</button>
+        <h2 style="color: white">Sign Up</h2>
+        <form class="registration-form" id="registrationForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="idno">ID Number</label><br />
+              <input
+                type="number"
+                id="idno"
+                name="idno"
+                placeholder="Your ID Number"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="lname">Last Name</label><br />
+              <input
+                type="text"
+                id="lname"
+                name="lname"
+                placeholder="Your Last Name"
+                required
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fname">First Name</label><br />
+              <input
+                type="text"
+                id="fname"
+                name="fname"
+                placeholder="Your First Name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="mname">Middle Name</label><br />
+              <input
+                type="text"
+                id="mname"
+                name="mname"
+                placeholder="Your Middle Name"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="level">Course Level</label><br />
+              <input
+                type="number"
+                id="level"
+                name="level"
+                placeholder="Your Course Level"
+              />
+            </div>
+            <div class="form-group">
+              <label for="course">Course</label><br />
+              <input
+                type="text"
+                id="course"
+                name="course"
+                placeholder="Course"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label><br />
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Your Email Address"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="address">Address</label><br />
+              <input
+                type="text"
+                id="address"
+                name="address"
+                placeholder="Your Address"
+              />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password</label><br />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Your Password"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="repassword">Repeat your password</label>
+              <input
+                type="password"
+                id="repassword"
+                name="repassword"
+                placeholder="Verify Password"
+                required
+              />
+            </div>
+          </div>
+          <input type="submit" value="Submit" />
+          <p
+            id="registerMessage"
+            style="color: white; text-align: center; margin-top: 10px"
+          ></p>
+        </form>
+      </section>
+
+      <section class="login-page" id="loginPage">
+        <div class="login-form">
+          <h1>Login</h1>
+          <form id="loginForm">
+            <label for="loginemail">Email</label>
+            <input
+              type="email"
+              id="loginemail"
+              name="email"
+              placeholder="Email Address"
+              required
+            />
+            <label for="loginpassword">Password</label>
+            <input
+              type="password"
+              id="loginpassword"
+              name="password"
+              placeholder="Password"
+              required
+            />
+            <input type="submit" value="Submit" />
+            <p
+              id="loginMessage"
+              style="color: red; text-align: center; margin-top: 10px"
+            ></p>
+          </form>
+        </div>
+        <button class="back-button" id="backLogin">Back</button>
+      </section>
+
+      <section class="user-content" id="userDashboard">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Dashboard</h1>
+            </div>
+
+            <ul>
+              <li><a href="#">Home</a></li>
+              <li><a href="#" id="editProfileLink">Edit Profile</a></li>
+              <li><a href="#">History</a></li>
+              <li><a href="#">Reservation</a></li>
+              <li><a class="logout-btn" href="#" id="logoutBtn">Log Out</a></li>
+            </ul>
+          </div>
+        </nav>
+        <div class="dashboard-content">
+          <div class="student-information-page">
+            <h3>Student Information</h3>
+            <div class="profile-picture">
+              <img
+                id="displayProfilePic"
+                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"
+                alt="Profile Picture"
+              />
+            </div>
+            <h4>Name: <span id="displayName"></span></h4>
+            <h4>ID Number: <span id="displayIdNumber"></span></h4>
+            <h4>Course: <span id="displayCourse"></span></h4>
+            <h4>Year: <span id="displayYear"></span></h4>
+            <h4>Email: <span id="displayEmail"></span></h4>
+            <h4>Address: <span id="displayAddress"></span></h4>
+            <h4>Session Left: <span id="displaySession"></span></h4>
+          </div>
+
+          <div class="announcement-page">
+            <h3>Announcement</h3>
+            <div id="userAnnouncementList" class="announcement-list"></div>
+          </div>
+
+          <div class="rules-regulation-page">
+            <h3>Rules and Regulation</h3>
+            <h4 style="text-align: center">University of Cebu</h4>
+            <h4 style="text-align: center">
+              COLLEGE OF INFORMATION & COMPUTER STUDIES
+            </h4>
+            <h4>LABORATORY RULES AND REGULATIONS</h4>
+            To avoid embarassment and maintain camaraderie with your friends and
+            superior at our laboratories please observe the following:
+            <ol>
+              <li>
+                Maintain silence, proper decorum and discipline inside the
+                laboratory. Mobile phones and other personal pieces of equipment
+                must be switched off
+              </li>
+              <li>
+                Games are not allowed inside the lab. This includes
+                computer-related games, card games and other games that may
+                disturb the operation of the lab.
+              </li>
+              <li>
+                Surfing the Internet is allowed only with the permission of the
+                instructor. Downloading and installing of the software strictly
+                prohibited.
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Edit Profile Page -->
+      <section class="edit-profile-page" id="editProfilePage">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Edit Profile</h1>
+            </div>
+            <ul>
+              <li><a href="#" id="backToDashboard">Back to Dashboard</a></li>
+              <li>
+                <a class="logout-btn" href="#" id="logoutBtnEdit">Log Out</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="edit-profile-container">
+          <form id="editProfileForm" class="edit-profile-form">
+            <div class="profile-pic-section">
+              <div class="profile-pic-preview">
+                <img
+                  id="profilePicPreview"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"
+                  alt="Profile Picture"
+                />
+              </div>
+              <input type="file" id="profilePicInput" accept="image/*" />
+              <label for="profilePicInput" class="upload-btn"
+                >Choose Photo</label
+              >
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editIdno">ID Number</label>
+                <input type="text" id="editIdno" readonly />
+              </div>
+              <div class="form-group">
+                <label for="editLname">Last Name</label>
+                <input type="text" id="editLname" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editFname">First Name</label>
+                <input type="text" id="editFname" required />
+              </div>
+              <div class="form-group">
+                <label for="editMname">Middle Name</label>
+                <input type="text" id="editMname" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editLevel">Course Level</label>
+                <input type="text" id="editLevel" />
+              </div>
+              <div class="form-group">
+                <label for="editCourse">Course</label>
+                <input type="text" id="editCourse" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" required />
+              </div>
+              <div class="form-group">
+                <label for="editAddress">Address</label>
+                <input type="text" id="editAddress" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="save-btn">Save Changes</button>
+              <button type="button" class="cancel-btn" id="cancelEditProfile">
+                Cancel
+              </button>
+            </div>
+            <p
+              id="editProfileMessage"
+              style="text-align: center; margin-top: 10px"
+            ></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="admin-dashboard" id="adminDashboard">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Admin Dashboard</h1>
+            </div>
+
+            <ul>
+              <li><a href="#">Home</a></li>
+              <li><a href="#">Search</a></li>
+              <li><a href="#">Students</a></li>
+              <li><a href="#">Sit-in</a></li>
+              <li><a href="#">View Sit-in Records</a></li>
+              <li><a href="#">Sit-in Reports</a></li>
+              <li><a href="#">Feedback Reports</a></li>
+              <li><a href="#">Reservation</a></li>
+              <li>
+                <a class="logout-btn" href="#" id="adminLogoutBtn">Log Out</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="dashboard-content">
+          <div class="admin-overview-page">
+            <h3>Admin Overview</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h4>Total Students</h4>
+                <p class="stat-number">0</p>
+              </div>
+              <div class="stat-card">
+                <h4>Active Sit-ins</h4>
+                <p class="stat-number">0</p>
+              </div>
+              <div class="stat-card">
+                <h4>Total Sessions</h4>
+                <p class="stat-number">0</p>
+              </div>
+              <div class="stat-card">
+                <h4>Pending Reservations</h4>
+                <p class="stat-number">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-announcement-page">
+            <h3>Announcements</h3>
+            <div class="announcement-form">
+              <form id="announcementForm">
+                <input
+                  type="text"
+                  id="announcementTitle"
+                  placeholder="Announcement Title"
+                  required
+                />
+                <textarea
+                  id="announcementDesc"
+                  placeholder="Announcement Description"
+                  required
+                ></textarea>
+                <button type="submit" class="announcement-btn">
+                  Send Announcement
+                </button>
+              </form>
+              <p id="announcementMessage"></p>
+            </div>
+            <div class="announcement-history">
+              <h4>Announcement History</h4>
+              <div id="adminAnnouncementList" class="announcement-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
