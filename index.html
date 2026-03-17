@@ -184,6 +184,7 @@
               required
             />
             <input type="submit" value="Submit" />
+            <p>Don't have an account? <a href="">Sign up</a></p>
             <p
               id="loginMessage"
               style="color: red; text-align: center; margin-top: 10px"
@@ -356,7 +357,7 @@
 
             <ul>
               <li><a href="#">Home</a></li>
-              <li><a href="#">Search</a></li>
+              <li><a href="#" id="adminSearchLink">Search</a></li>
               <li><a href="#">Students</a></li>
               <li><a href="#">Sit-in</a></li>
               <li><a href="#">View Sit-in Records</a></li>
@@ -420,6 +421,76 @@
           </div>
         </div>
       </section>
+
+      <!-- Search Student Modal -->
+      <div class="modal" id="searchStudentModal">
+        <div class="modal-content">
+          <span class="modal-close" id="closeSearchModal">&times;</span>
+          <h2>Search Student</h2>
+          <form id="searchStudentForm">
+            <div class="form-group">
+              <label for="searchInput">Search by ID Number or Email</label>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Enter ID Number or Email"
+                required
+              />
+            </div>
+            <button type="submit" class="search-btn">Search</button>
+            <p id="searchMessage"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- Sit in Form Modal -->
+      <div class="modal" id="sitInFormModal">
+        <div class="modal-content">
+          <span class="modal-close" id="closeSitInModal">&times;</span>
+          <h2>Sit in Form</h2>
+          <form id="sitInForm">
+            <div class="form-group">
+              <label for="sitInIdNumber">ID Number</label>
+              <input type="text" id="sitInIdNumber" readonly />
+            </div>
+            <div class="form-group">
+              <label for="sitInStudentName">Student Name</label>
+              <input type="text" id="sitInStudentName" readonly />
+            </div>
+            <div class="form-group">
+              <label for="sitInPurpose">Purpose</label>
+              <input
+                type="text"
+                id="sitInPurpose"
+                placeholder="Enter Purpose"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="sitInLab">Lab</label>
+              <input
+                type="text"
+                id="sitInLab"
+                placeholder="Enter Lab"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label
+                >Remaining Sessions:
+                <span id="sitInRemainingSessions">0</span></label
+              >
+            </div>
+            <div class="modal-buttons">
+              <button type="button" class="cancel-btn" id="cancelSitInBtn">
+                Close
+              </button>
+              <button type="submit" class="sit-in-btn">Sit In</button>
+            </div>
+            <p id="sitInMessage"></p>
+          </form>
+        </div>
+      </div>
     </main>
 
     <script src="script.js"></script>

@@ -568,5 +568,189 @@ editProfileForm.addEventListener("submit", async function (e) {
   }
 });
 
+// ===== Admin Search and Sit-in Functionality =====
+
+// Modal elements
+const searchStudentModal = document.getElementById("searchStudentModal");
+const sitInFormModal = document.getElementById("sitInFormModal");
+const closeSearchModal = document.getElementById("closeSearchModal");
+const closeSitInModal = document.getElementById("closeSitInModal");
+const adminSearchLink = document.getElementById("adminSearchLink");
+const searchStudentForm = document.getElementById("searchStudentForm");
+const sitInForm = document.getElementById("sitInForm");
+
+// Store searched student data
+let searchedStudent = null;
+
+// Open Search Student modal when clicking Search nav link
+if (adminSearchLink) {
+  adminSearchLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    openSearchModal();
+  });
+}
+
+// Function to open search modal
+function openSearchModal() {
+  searchStudentModal.style.display = "block";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("searchMessage").textContent = "";
+}
+
+// Function to close search modal
+function closeSearchModalFunc() {
+  searchStudentModal.style.display = "none";
+}
+
+// Function to open Sit in Form modal
+function openSitInModal() {
+  sitInFormModal.style.display = "block";
+  document.getElementById("sitInMessage").textContent = "";
+}
+
+// Function to close Sit in Form modal
+function closeSitInModalFunc() {
+  sitInFormModal.style.display = "none";
+  sitInForm.reset();
+  searchedStudent = null;
+}
+
+// Close modal event listeners
+if (closeSearchModal) {
+  closeSearchModal.addEventListener("click", closeSearchModalFunc);
+}
+
+if (closeSitInModal) {
+  closeSitInModal.addEventListener("click", closeSitInModalFunc);
+}
+
+// Add cancel button event listener for Sit in Form
+const cancelSitInBtn = document.getElementById("cancelSitInBtn");
+if (cancelSitInBtn) {
+  cancelSitInBtn.addEventListener("click", closeSitInModalFunc);
+}
+
+// Search Student form submit
+if (searchStudentForm) {
+  searchStudentForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const searchInput = document.getElementById("searchInput").value.trim();
+    const messageEl = document.getElementById("searchMessage");
+
+    if (!searchInput) {
+      messageEl.textContent = "Please enter ID Number or Email";
+      messageEl.className = "error";
+      return;
+    }
+
+    messageEl.textContent = "Searching...";
+    messageEl.className = "";
+
+    try {
+      const response = await fetch("/api/admin/search-student", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ search: searchInput }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        searchedStudent = data.student;
+
+        // Populate Sit in Form
+        document.getElementById("sitInIdNumber").value =
+          searchedStudent.idNumber;
+        document.getElementById("sitInStudentName").value =
+          searchedStudent.firstName +
+          (searchedStudent.middleName ? " " + searchedStudent.middleName : "") +
+          " " +
+          searchedStudent.lastName;
+
+        // Display remaining sessions (default 30 if null)
+        const remainingSessions = searchedStudent.sessionLeft || 30;
+        document.getElementById("sitInRemainingSessions").textContent =
+          remainingSessions;
+
+        // Close search modal and open sit in form modal
+        closeSearchModalFunc();
+        openSitInModal();
+      } else {
+        messageEl.textContent = data.message;
+        messageEl.className = "error";
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      messageEl.textContent = "Search failed. Please try again.";
+      messageEl.className = "error";
+    }
+  });
+}
+
+// Sit in Form submit
+if (sitInForm) {
+  sitInForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    if (!searchedStudent) {
+      alert("No student selected. Please search for a student first.");
+      return;
+    }
+
+    const purpose = document.getElementById("sitInPurpose").value;
+    const lab = document.getElementById("sitInLab").value;
+    const messageEl = document.getElementById("sitInMessage");
+
+    if (!purpose || !lab) {
+      messageEl.textContent = "Please select Purpose and Lab";
+      messageEl.className = "error";
+      return;
+    }
+
+    messageEl.textContent = "Processing...";
+    messageEl.className = "";
+
+    try {
+      const response = await fetch("/api/admin/sit-in", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: searchedStudent.id,
+          purpose: purpose,
+          lab: lab,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        messageEl.textContent = "Sit in recorded successfully!";
+        messageEl.className = "success";
+
+        // Update remaining sessions display
+        document.getElementById("sitInRemainingSessions").textContent =
+          data.remainingSessions;
+
+        // Reset form after short delay and close
+        setTimeout(() => {
+          closeSitInModalFunc();
+        }, 1500);
+      } else {
+        messageEl.textContent = data.message;
+        messageEl.className = "error";
+      }
+    } catch (error) {
+      console.error("Sit in error:", error);
+      messageEl.textContent = "Failed to record sit in. Please try again.";
+      messageEl.className = "error";
+    }
+  });
+}
+
 // Initialize - check auth status on page load
 checkAuth();

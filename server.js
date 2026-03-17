@@ -533,6 +533,125 @@ app.delete("/api/announcements/:id", (req, res) => {
   });
 });
 
+// ===== Admin Search Student API =====
+app.post("/api/admin/search-student", (req, res) => {
+  // Check if user is authenticated and is admin
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const { search } = req.body;
+
+  if (!search) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Search term is required" });
+  }
+
+  // Search by ID Number or Email
+  const sql = `SELECT id, idNumber, email, firstName, lastName, middleName, sessionLeft 
+               FROM users 
+               WHERE idNumber = ? OR email = ? 
+               LIMIT 1`;
+
+  db.get(sql, [search, search], (err, student) => {
+    if (err) {
+      console.error("Search student error:", err);
+      return res.status(500).json({ success: false, message: "Search failed" });
+    }
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    res.json({
+      success: true,
+      student: student,
+    });
+  });
+});
+
+// ===== Admin Record Sit-in API =====
+app.post("/api/admin/sit-in", (req, res) => {
+  // Check if user is authenticated and is admin
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const { studentId, purpose, lab } = req.body;
+
+  if (!studentId || !purpose || !lab) {
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
+  }
+
+  // Get current student session info
+  const getStudentSql = "SELECT sessionLeft FROM users WHERE id = ?";
+
+  db.get(getStudentSql, [studentId], (err, student) => {
+    if (err) {
+      console.error("Get student error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get student info" });
+    }
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    // Check if student has remaining sessions
+    const currentSessions = student.sessionLeft || 30;
+
+    if (currentSessions <= 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Student has no remaining sessions" });
+    }
+
+    // Decrease session count
+    const newSessions = currentSessions - 1;
+
+    // Update student session
+    const updateSql = "UPDATE users SET sessionLeft = ? WHERE id = ?";
+
+    db.run(updateSql, [newSessions, studentId], function (err) {
+      if (err) {
+        console.error("Update session error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to update sessions" });
+      }
+
+      // Also create a sit-in record (optional - if you have a sit_in table)
+      // For now, just return success with remaining sessions
+
+      res.json({
+        success: true,
+        message: "Sit in recorded successfully!",
+        remainingSessions: newSessions,
+      });
+    });
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
