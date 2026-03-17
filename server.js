@@ -579,6 +579,147 @@ app.post("/api/admin/search-student", (req, res) => {
   });
 });
 
+// ===== Admin Get All Students API =====
+app.get("/api/admin/students", (req, res) => {
+  // Check if user is authenticated and is admin
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const searchTerm = req.query.search;
+  let sql;
+  let params = [];
+
+  if (searchTerm) {
+    sql = `SELECT id, idNumber, firstName, lastName, middleName, courseLevel, course, email, sessionLeft 
+           FROM users 
+           WHERE isAdmin = 0 
+           AND (idNumber LIKE ? OR firstName LIKE ? OR lastName LIKE ? OR course LIKE ?)
+           ORDER BY lastName, firstName`;
+    const searchPattern = `%${searchTerm}%`;
+    params = [searchPattern, searchPattern, searchPattern, searchPattern];
+  } else {
+    sql = `SELECT id, idNumber, firstName, lastName, middleName, courseLevel, course, email, sessionLeft 
+           FROM users 
+           WHERE isAdmin = 0
+           ORDER BY lastName, firstName`;
+  }
+
+  db.all(sql, params, (err, students) => {
+    if (err) {
+      console.error("Get all students error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to retrieve students" });
+    }
+
+    res.json({
+      success: true,
+      students: students,
+    });
+  });
+});
+
+// ===== Admin Delete Student API =====
+app.delete("/api/admin/students/:id", (req, res) => {
+  // Check if user is authenticated and is admin
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const studentId = req.params.id;
+
+  const sql = `DELETE FROM users WHERE id = ?`;
+
+  db.run(sql, [studentId], function (err) {
+    if (err) {
+      console.error("Delete student error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to delete student" });
+    }
+
+    res.json({
+      success: true,
+      message: "Student deleted successfully",
+    });
+  });
+});
+
+// ===== Admin Update Student API =====
+app.put("/api/admin/students/:id", (req, res) => {
+  // Check if user is authenticated and is admin
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const studentId = req.params.id;
+  const {
+    idNumber,
+    firstName,
+    lastName,
+    middleName,
+    courseLevel,
+    course,
+    sessionLeft,
+  } = req.body;
+
+  const sql = `UPDATE users SET 
+               idNumber = COALESCE(?, idNumber),
+               firstName = COALESCE(?, firstName),
+               lastName = COALESCE(?, lastName),
+               middleName = COALESCE(?, middleName),
+               courseLevel = COALESCE(?, courseLevel),
+               course = COALESCE(?, course),
+               sessionLeft = COALESCE(?, sessionLeft)
+               WHERE id = ?`;
+
+  db.run(
+    sql,
+    [
+      idNumber,
+      firstName,
+      lastName,
+      middleName,
+      courseLevel,
+      course,
+      sessionLeft,
+      studentId,
+    ],
+    function (err) {
+      if (err) {
+        console.error("Update student error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to update student" });
+      }
+
+      res.json({
+        success: true,
+        message: "Student updated successfully",
+      });
+    },
+  );
+});
+
 // ===== Admin Record Sit-in API =====
 app.post("/api/admin/sit-in", (req, res) => {
   // Check if user is authenticated and is admin

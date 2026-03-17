@@ -40,6 +40,9 @@ function hideAll() {
   if (adminDashboard) {
     adminDashboard.style.display = "none";
   }
+  if (studentInformationAdmin) {
+    studentInformationAdmin.style.display = "none";
+  }
 }
 
 // Check if user is logged in on page load
@@ -66,7 +69,280 @@ function displayAdminDashboard() {
   hideAll();
   adminDashboard.style.display = "block";
   loadAdminAnnouncements();
+  loadStudents();
 }
+
+// Student Management Functions
+let allStudents = [];
+
+// Load all students
+async function loadStudents(searchTerm = "") {
+  const tableBody = document.getElementById("studentsTableBody");
+  if (!tableBody) return;
+
+  try {
+    const url = searchTerm
+      ? `/api/admin/students?search=${encodeURIComponent(searchTerm)}`
+      : "/api/admin/students";
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.success) {
+      allStudents = data.students;
+      renderStudentsTable(allStudents);
+    } else {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">${data.message}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loading students:", error);
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Error loading students</td></tr>`;
+  }
+}
+
+// Render students table
+function renderStudentsTable(students) {
+  const tableBody = document.getElementById("studentsTableBody");
+  if (!tableBody) return;
+
+  if (students.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No students found</td></tr>`;
+    return;
+  }
+
+  tableBody.innerHTML = students
+    .map((student) => {
+      const fullName = `${student.lastName}, ${student.firstName}${student.middleName ? " " + student.middleName : ""}`;
+      return `
+      <tr>
+        <td>${student.idNumber || "N/A"}</td>
+        <td>${fullName}</td>
+        <td>${student.courseLevel || "N/A"}</td>
+        <td>${student.course || "N/A"}</td>
+        <td>${student.sessionLeft !== null ? student.sessionLeft : 30}</td>
+        <td class="action-buttons">
+          <button class="edit-btn" onclick="openEditStudentModal(${student.id})">Edit</button>
+          <button class="delete-btn" onclick="openDeleteStudentModal(${student.id})">Delete</button>
+        </td>
+      </tr>
+    `;
+    })
+    .join("");
+}
+
+// Open edit student modal
+function openEditStudentModal(studentId) {
+  const student = allStudents.find((s) => s.id === studentId);
+  if (!student) return;
+
+  document.getElementById("editStudentId").value = student.id;
+  document.getElementById("editStudentIdNumber").value = student.idNumber || "";
+  document.getElementById("editStudentFirstName").value =
+    student.firstName || "";
+  document.getElementById("editStudentLastName").value = student.lastName || "";
+  document.getElementById("editStudentMiddleName").value =
+    student.middleName || "";
+  document.getElementById("editStudentYearLevel").value =
+    student.courseLevel || "";
+  document.getElementById("editStudentCourse").value = student.course || "";
+  document.getElementById("editStudentSession").value =
+    student.sessionLeft !== null ? student.sessionLeft : 30;
+  document.getElementById("editStudentMessage").textContent = "";
+
+  document.getElementById("editStudentModal").style.display = "block";
+}
+
+// Open delete student modal
+function openDeleteStudentModal(studentId) {
+  const student = allStudents.find((s) => s.id === studentId);
+  if (!student) return;
+
+  document.getElementById("deleteStudentId").value = student.id;
+  document.getElementById("deleteStudentName").textContent =
+    `${student.firstName} ${student.middleName ? student.middleName + " " : ""}${student.lastName}`;
+  document.getElementById("deleteStudentIdNumber").textContent =
+    student.idNumber || "N/A";
+  document.getElementById("deleteStudentMessage").textContent = "";
+
+  document.getElementById("deleteStudentModal").style.display = "block";
+}
+
+// Handle edit student form submission
+async function handleEditStudent(e) {
+  e.preventDefault();
+
+  const studentId = document.getElementById("editStudentId").value;
+  const formData = {
+    idNumber: document.getElementById("editStudentIdNumber").value,
+    firstName: document.getElementById("editStudentFirstName").value,
+    lastName: document.getElementById("editStudentLastName").value,
+    middleName: document.getElementById("editStudentMiddleName").value,
+    courseLevel: document.getElementById("editStudentYearLevel").value,
+    course: document.getElementById("editStudentCourse").value,
+    sessionLeft: parseInt(document.getElementById("editStudentSession").value),
+  };
+
+  try {
+    const response = await fetch(`/api/admin/students/${studentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById("editStudentMessage").style.color = "green";
+      document.getElementById("editStudentMessage").textContent = data.message;
+
+      setTimeout(() => {
+        document.getElementById("editStudentModal").style.display = "none";
+        loadStudents();
+      }, 1000);
+    } else {
+      document.getElementById("editStudentMessage").style.color = "red";
+      document.getElementById("editStudentMessage").textContent = data.message;
+    }
+  } catch (error) {
+    console.error("Error updating student:", error);
+    document.getElementById("editStudentMessage").style.color = "red";
+    document.getElementById("editStudentMessage").textContent =
+      "Error updating student";
+  }
+}
+
+// Handle delete student
+async function handleDeleteStudent() {
+  const studentId = document.getElementById("deleteStudentId").value;
+
+  try {
+    const response = await fetch(`/api/admin/students/${studentId}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById("deleteStudentMessage").style.color = "green";
+      document.getElementById("deleteStudentMessage").textContent =
+        data.message;
+
+      setTimeout(() => {
+        document.getElementById("deleteStudentModal").style.display = "none";
+        loadStudents();
+      }, 1000);
+    } else {
+      document.getElementById("deleteStudentMessage").style.color = "red";
+      document.getElementById("deleteStudentMessage").textContent =
+        data.message;
+    }
+  } catch (error) {
+    console.error("Error deleting student:", error);
+    document.getElementById("deleteStudentMessage").style.color = "red";
+    document.getElementById("deleteStudentMessage").textContent =
+      "Error deleting student";
+  }
+}
+
+// Handle student search
+function handleStudentSearch() {
+  const searchTerm = document.getElementById("studentSearchInput").value.trim();
+  const clearBtn = document.getElementById("clearSearchBtn");
+
+  if (searchTerm) {
+    clearBtn.style.display = "inline-block";
+    loadStudents(searchTerm);
+  } else {
+    clearBtn.style.display = "none";
+    loadStudents();
+  }
+}
+
+// Clear student search
+function clearStudentSearch() {
+  document.getElementById("studentSearchInput").value = "";
+  document.getElementById("clearSearchBtn").style.display = "none";
+  loadStudents();
+}
+
+// Setup student management event listeners
+function setupStudentManagement() {
+  // Edit student form
+  const editStudentForm = document.getElementById("editStudentForm");
+  if (editStudentForm) {
+    editStudentForm.addEventListener("submit", handleEditStudent);
+  }
+
+  // Delete student button
+  const confirmDeleteBtn = document.getElementById("confirmDeleteStudent");
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", handleDeleteStudent);
+  }
+
+  // Search student
+  const searchStudentBtn = document.getElementById("searchStudentBtn");
+  if (searchStudentBtn) {
+    searchStudentBtn.addEventListener("click", handleStudentSearch);
+  }
+
+  // Clear search
+  const clearSearchBtn = document.getElementById("clearSearchBtn");
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener("click", clearStudentSearch);
+  }
+
+  // Enter key search
+  const searchInput = document.getElementById("studentSearchInput");
+  if (searchInput) {
+    searchInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        handleStudentSearch();
+      }
+    });
+  }
+
+  // Close edit student modal
+  const closeEditModal = document.getElementById("closeEditStudentModal");
+  if (closeEditModal) {
+    closeEditModal.addEventListener("click", function () {
+      document.getElementById("editStudentModal").style.display = "none";
+    });
+  }
+
+  // Close delete student modal
+  const closeDeleteModal = document.getElementById("closeDeleteStudentModal");
+  if (closeDeleteModal) {
+    closeDeleteModal.addEventListener("click", function () {
+      document.getElementById("deleteStudentModal").style.display = "none";
+    });
+  }
+
+  // Cancel delete
+  const cancelDeleteBtn = document.getElementById("cancelDeleteStudent");
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener("click", function () {
+      document.getElementById("deleteStudentModal").style.display = "none";
+    });
+  }
+
+  // Close modals when clicking outside
+  window.addEventListener("click", function (e) {
+    const editModal = document.getElementById("editStudentModal");
+    const deleteModal = document.getElementById("deleteStudentModal");
+
+    if (e.target === editModal) {
+      editModal.style.display = "none";
+    }
+    if (e.target === deleteModal) {
+      deleteModal.style.display = "none";
+    }
+  });
+}
+
+// Initialize student management on page load
+document.addEventListener("DOMContentLoaded", function () {
+  setupStudentManagement();
+});
 
 // Display user information in dashboard
 function displayUserDashboard(user) {
@@ -299,6 +575,34 @@ if (adminLogoutBtn) {
       landingPage.style.display = "block";
     } catch (error) {
       console.error("Admin logout error:", error);
+    }
+  });
+}
+
+// Student Admin Navbar Handlers
+const backToAdminFromStudents = document.getElementById(
+  "backToAdminFromStudents",
+);
+const studentAdminLogoutBtn = document.getElementById("studentAdminLogoutBtn");
+
+if (backToAdminFromStudents) {
+  backToAdminFromStudents.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayAdminDashboard();
+  });
+}
+
+if (studentAdminLogoutBtn) {
+  studentAdminLogoutBtn.addEventListener("click", async function (e) {
+    e.preventDefault();
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+      });
+      hideAll();
+      landingPage.style.display = "block";
+    } catch (error) {
+      console.error("Student admin logout error:", error);
     }
   });
 }
@@ -576,8 +880,12 @@ const sitInFormModal = document.getElementById("sitInFormModal");
 const closeSearchModal = document.getElementById("closeSearchModal");
 const closeSitInModal = document.getElementById("closeSitInModal");
 const adminSearchLink = document.getElementById("adminSearchLink");
+const adminStudentsLink = document.getElementById("adminStudentsLink");
 const searchStudentForm = document.getElementById("searchStudentForm");
 const sitInForm = document.getElementById("sitInForm");
+const studentInformationAdmin = document.querySelector(
+  ".student-information-admin",
+);
 
 // Store searched student data
 let searchedStudent = null;
@@ -588,6 +896,23 @@ if (adminSearchLink) {
     e.preventDefault();
     openSearchModal();
   });
+}
+
+// Show Student Information Admin when clicking Students nav link
+if (adminStudentsLink) {
+  adminStudentsLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    showStudentInformationAdmin();
+  });
+}
+
+// Function to show student information admin section
+function showStudentInformationAdmin() {
+  hideAll();
+  if (studentInformationAdmin) {
+    studentInformationAdmin.style.display = "block";
+    loadStudents();
+  }
 }
 
 // Function to open search modal
