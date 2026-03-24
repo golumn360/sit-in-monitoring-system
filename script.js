@@ -342,7 +342,83 @@ function setupStudentManagement() {
 // Initialize student management on page load
 document.addEventListener("DOMContentLoaded", function () {
   setupStudentManagement();
+  setupSuccessModals();
 });
+
+// Setup success modal event listeners
+function setupSuccessModals() {
+  // Login success modal
+  const loginSuccessModal = document.getElementById("loginSuccessModal");
+  const loginSuccessClose = document.getElementById("loginSuccessClose");
+  if (loginSuccessClose) {
+    loginSuccessClose.addEventListener("click", function () {
+      loginSuccessModal.style.display = "none";
+    });
+  }
+
+  // Register success modal
+  const registerSuccessModal = document.getElementById("registerSuccessModal");
+  const registerSuccessClose = document.getElementById("registerSuccessClose");
+  if (registerSuccessClose) {
+    registerSuccessClose.addEventListener("click", function () {
+      registerSuccessModal.style.display = "none";
+      hideAll();
+      loginPage.style.display = "flex";
+    });
+  }
+
+  // Logout success modal
+  const logoutSuccessModal = document.getElementById("logoutSuccessModal");
+  const logoutSuccessClose = document.getElementById("logoutSuccessClose");
+  if (logoutSuccessClose) {
+    logoutSuccessClose.addEventListener("click", function () {
+      logoutSuccessModal.style.display = "none";
+      hideAll();
+      landingPage.style.display = "block";
+    });
+  }
+
+  // Close modals when clicking outside
+  window.addEventListener("click", function (e) {
+    if (e.target === loginSuccessModal) {
+      loginSuccessModal.style.display = "none";
+    }
+    if (e.target === registerSuccessModal) {
+      registerSuccessModal.style.display = "none";
+      hideAll();
+      loginPage.style.display = "flex";
+    }
+    if (e.target === logoutSuccessModal) {
+      logoutSuccessModal.style.display = "none";
+      hideAll();
+      landingPage.style.display = "block";
+    }
+  });
+}
+
+// Show login success modal
+function showLoginSuccessModal() {
+  const loginSuccessModal = document.getElementById("loginSuccessModal");
+  if (loginSuccessModal) {
+    loginSuccessModal.style.display = "block";
+  }
+}
+
+// Show register success modal
+function showRegisterSuccessModal() {
+  const registerSuccessModal = document.getElementById("registerSuccessModal");
+  if (registerSuccessModal) {
+    registerSuccessModal.style.display = "block";
+  }
+}
+
+// Show logout success modal
+function showLogoutSuccessModal() {
+  const logoutSuccessModal = document.getElementById("logoutSuccessModal");
+  if (logoutSuccessModal) {
+    logoutSuccessModal.style.display = "block";
+  }
+}
 
 // Display user information in dashboard
 function displayUserDashboard(user) {
@@ -452,16 +528,12 @@ registrationForm.addEventListener("submit", async function (e) {
     const data = await response.json();
 
     if (data.success) {
-      messageEl.textContent = data.message;
-      messageEl.style.color = "green";
+      // Show registration success modal
+      showRegisterSuccessModal();
 
-      // Clear form and redirect to login after 2 seconds
-      setTimeout(() => {
-        registrationForm.reset();
-        hideAll();
-        loginPage.style.display = "flex";
-        messageEl.textContent = "";
-      }, 2000);
+      // Clear form
+      registrationForm.reset();
+      messageEl.textContent = "";
     } else {
       messageEl.textContent = data.message;
       messageEl.style.color = "red";
@@ -494,7 +566,10 @@ loginForm.addEventListener("submit", async function (e) {
 
     if (data.success) {
       messageEl.textContent = "";
-      // Fetch user data and show dashboard
+      // Show login success modal first
+      showLoginSuccessModal();
+
+      // Fetch user data and show dashboard after a short delay
       const userResponse = await fetch("/api/user");
       const userData = await userResponse.json();
 
@@ -506,6 +581,9 @@ loginForm.addEventListener("submit", async function (e) {
           displayUserDashboard(userData.user);
         }
       }
+
+      // Clear login form
+      loginForm.reset();
     } else {
       messageEl.textContent = data.message;
     }
@@ -524,8 +602,8 @@ logoutBtn.addEventListener("click", async function (e) {
       method: "POST",
     });
 
-    hideAll();
-    landingPage.style.display = "block";
+    // Show logout success modal
+    showLogoutSuccessModal();
   } catch (error) {
     console.error("Logout error:", error);
   }
@@ -554,8 +632,8 @@ if (logoutBtnEdit) {
       await fetch("/api/logout", {
         method: "POST",
       });
-      hideAll();
-      landingPage.style.display = "block";
+      // Show logout success modal
+      showLogoutSuccessModal();
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -571,8 +649,8 @@ if (adminLogoutBtn) {
       await fetch("/api/logout", {
         method: "POST",
       });
-      hideAll();
-      landingPage.style.display = "block";
+      // Show logout success modal
+      showLogoutSuccessModal();
     } catch (error) {
       console.error("Admin logout error:", error);
     }
@@ -599,8 +677,8 @@ if (studentAdminLogoutBtn) {
       await fetch("/api/logout", {
         method: "POST",
       });
-      hideAll();
-      landingPage.style.display = "block";
+      // Show logout success modal
+      showLogoutSuccessModal();
     } catch (error) {
       console.error("Student admin logout error:", error);
     }
