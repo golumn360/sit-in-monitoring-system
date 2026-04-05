@@ -1010,6 +1010,69 @@ label {
   font-size: 14px;
 }
 
+/* Sit In Page Styles */
+.sit-in-content {
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: calc(100vh - 100px);
+}
+
+.sit-in-content h2 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.sit-in-table-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.sit-in-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sit-in-table thead {
+  background-color: #005fa3;
+  color: white;
+}
+
+.sit-in-table th,
+.sit-in-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.sit-in-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.status-active {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.action-btn {
+  padding: 5px 15px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.action-btn:hover {
+  background-color: #c82333;
+}
+
 .search-box button {
   padding: 10px 20px;
   background-color: #28a745;

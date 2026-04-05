@@ -186,6 +186,61 @@ function createTableAnnouncements() {
   );
 }
 
+function createTableSitIn() {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS sit_in (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            purpose TEXT NOT NULL,
+            lab TEXT NOT NULL,
+            session INTEGER DEFAULT 1,
+            status TEXT DEFAULT 'Active',
+            login_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            logout_time DATETIME,
+            date DATE DEFAULT CURRENT_DATE,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )`,
+    (err) => {
+      if (err) {
+        console.error("Error creating sit_in table:", err);
+      } else {
+        console.log("Sit_in table ready");
+      }
+    },
+  );
+}
+
+function addSitInColumns() {
+  // Add missing columns to existing sit_in table
+  db.run(
+    `ALTER TABLE sit_in ADD COLUMN login_time DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    (err) => {
+      if (err && !err.message.includes("duplicate column")) {
+        console.log("login_time column may already exist");
+      } else {
+        console.log("login_time column ready");
+      }
+    },
+  );
+  db.run(`ALTER TABLE sit_in ADD COLUMN logout_time DATETIME`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.log("logout_time column may already exist");
+    } else {
+      console.log("logout_time column ready");
+    }
+  });
+  db.run(
+    `ALTER TABLE sit_in ADD COLUMN date DATE DEFAULT CURRENT_DATE`,
+    (err) => {
+      if (err && !err.message.includes("duplicate column")) {
+        console.log("date column may already exist");
+      } else {
+        console.log("date column ready");
+      }
+    },
+  );
+}
+
 // Middleware - must be defined BEFORE routes
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -451,6 +506,8 @@ app.use(express.static("public"));
 
 initializeDatabase();
 createTableAnnouncements();
+createTableSitIn();
+addSitInColumns();
 
 // Announcements API
 // Create announcement (admin only)
@@ -767,28 +824,182 @@ app.post("/api/admin/sit-in", (req, res) => {
         .json({ success: false, message: "Student has no remaining sessions" });
     }
 
-    // Decrease session count
-    const newSessions = currentSessions - 1;
-
-    // Update student session
-    const updateSql = "UPDATE users SET sessionLeft = ? WHERE id = ?";
-
-    db.run(updateSql, [newSessions, studentId], function (err) {
+    // Insert sit-in record (session will be deducted when finished)
+    const insertSitInSql = `INSERT INTO sit_in (user_id, purpose, lab, session, status) VALUES (?, ?, ?, 1, 'Active')`;
+    db.run(insertSitInSql, [studentId, purpose, lab], function (err) {
       if (err) {
-        console.error("Update session error:", err);
+        console.error("Insert sit-in error:", err);
         return res
           .status(500)
-          .json({ success: false, message: "Failed to update sessions" });
+          .json({ success: false, message: "Failed to record sit in" });
       }
 
-      // Also create a sit-in record (optional - if you have a sit_in table)
-      // For now, just return success with remaining sessions
+      console.log("Sit-in record created with ID:", this.lastID);
 
       res.json({
         success: true,
         message: "Sit in recorded successfully!",
-        remainingSessions: newSessions,
+        remainingSessions: currentSessions,
       });
+    });
+  });
+});
+
+// ===== Finish Sit-in API =====
+app.post("/api/sit-in/finish", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const { sitInId } = req.body;
+
+  if (!sitInId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Sit-in ID is required" });
+  }
+
+  // First get the sit-in record to find the user
+  const getSitInSql = "SELECT user_id FROM sit_in WHERE id = ?";
+  db.get(getSitInSql, [sitInId], (err, sitIn) => {
+    if (err) {
+      console.error("Get sit-in error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get sit-in" });
+    }
+
+    if (!sitIn) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Sit-in not found" });
+    }
+
+    // Update status to Finished and add logout time
+    const updateSql =
+      "UPDATE sit_in SET status = 'Finished', logout_time = CURRENT_TIMESTAMP WHERE id = ?";
+    db.run(updateSql, [sitInId], function (err) {
+      if (err) {
+        console.error("Finish sit-in error:", err);
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to finish sit-in" });
+      }
+    });
+
+    // Now decrement the user's session count
+    const getUserSql = "SELECT sessionLeft FROM users WHERE id = ?";
+    db.get(getUserSql, [sitIn.user_id], (err, user) => {
+      if (err) {
+        console.error("Get user error:", err);
+      } else if (user && user.sessionLeft > 0) {
+        const newSessions = user.sessionLeft - 1;
+        const updateUserSql = "UPDATE users SET sessionLeft = ? WHERE id = ?";
+        db.run(updateUserSql, [newSessions, sitIn.user_id], (err) => {
+          if (err) {
+            console.error("Update session error:", err);
+          } else {
+            console.log("Session decremented for user:", sitIn.user_id);
+          }
+        });
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Sit-in finished successfully",
+    });
+  });
+});
+
+// ===== Get All Sit-ins (including finished) API =====
+app.get("/api/sit-ins-all", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const sql = `
+    SELECT 
+      s.id as sit_in_id,
+      s.user_id,
+      s.purpose,
+      s.lab,
+      s.session,
+      s.status,
+      s.created_at as login_time,
+      s.created_at as logout_time,
+      DATE(s.created_at) as date,
+      u.idNumber,
+      u.firstName,
+      u.lastName
+    FROM sit_in s
+    JOIN users u ON s.user_id = u.id
+    WHERE s.status = 'Finished'
+    ORDER BY s.created_at DESC
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error("Get sit-ins error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get sit-ins" });
+    }
+
+    res.json({
+      success: true,
+      sitIns: rows,
+    });
+  });
+});
+
+// ===== Get Current Sit-ins API =====
+app.get("/api/sit-ins", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const sql = `
+    SELECT 
+      s.id as sit_in_id,
+      s.user_id,
+      s.purpose,
+      s.lab,
+      s.session,
+      s.status,
+      s.created_at as login_time,
+      s.created_at as logout_time,
+      DATE(s.created_at) as date,
+      u.idNumber,
+      u.firstName,
+      u.lastName
+    FROM sit_in s
+    JOIN users u ON s.user_id = u.id
+    WHERE s.status = 'Active'
+    ORDER BY s.created_at DESC
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error("Get sit-ins error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get sit-ins" });
+    }
+
+    res.json({
+      success: true,
+      sitIns: rows,
     });
   });
 });

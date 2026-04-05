@@ -359,8 +359,10 @@
               <li><a href="#">Home</a></li>
               <li><a href="#" id="adminSearchLink">Search</a></li>
               <li><a href="#" id="adminStudentsLink">Students</a></li>
-              <li><a href="#">Sit-in</a></li>
-              <li><a href="#">View Sit-in Records</a></li>
+              <li><a href="#" id="sitInLink">Sit-in</a></li>
+              <li>
+                <a href="#" id="viewSitInRecordsLink">View Sit-in Records</a>
+              </li>
               <li><a href="#">Sit-in Reports</a></li>
               <li><a href="#">Feedback Reports</a></li>
               <li><a href="#">Reservation</a></li>
@@ -418,6 +420,98 @@
               <h4>Announcement History</h4>
               <div id="adminAnnouncementList" class="announcement-list"></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sit In Records Page -->
+      <section class="sit-in-page" id="sitInPage" style="display: none">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Sit In Records</h1>
+            </div>
+            <ul>
+              <li>
+                <a href="#" id="backToAdminFromSitIn">Back to Dashboard</a>
+              </li>
+              <li>
+                <a class="logout-btn" href="#" id="sitInPageLogoutBtn"
+                  >Log Out</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="sit-in-content">
+          <h2>Current Sit-ins</h2>
+          <div class="sit-in-table-container">
+            <table class="sit-in-table">
+              <thead>
+                <tr>
+                  <th>Sit ID</th>
+                  <th>ID Number</th>
+                  <th>Name</th>
+                  <th>Purpose</th>
+                  <th>Lab</th>
+                  <th>Session</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sitInTableBody">
+                <!-- Sit-in records will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- View Sit-in Records Page -->
+      <section
+        class="view-sit-in-records-page"
+        id="viewSitInRecordsPage"
+        style="display: none"
+      >
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>View Sit-in Records</h1>
+            </div>
+            <ul>
+              <li>
+                <a href="#" id="backToAdminFromViewSitIn">Back to Dashboard</a>
+              </li>
+              <li>
+                <a class="logout-btn" href="#" id="viewSitInRecordsLogoutBtn"
+                  >Log Out</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="sit-in-content">
+          <h2>Session Ended Records</h2>
+          <div class="sit-in-table-container">
+            <table class="sit-in-table">
+              <thead>
+                <tr>
+                  <th>Sit ID</th>
+                  <th>ID Number</th>
+                  <th>Name</th>
+                  <th>Purpose</th>
+                  <th>Lab</th>
+                  <th>Session</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Login Time</th>
+                  <th>Logout Time</th>
+                </tr>
+              </thead>
+              <tbody id="viewSitInRecordsTableBody">
+                <!-- Sit-in records will be loaded here -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -610,21 +704,24 @@
             </div>
             <div class="form-group">
               <label for="sitInPurpose">Purpose</label>
-              <input
-                type="text"
-                id="sitInPurpose"
-                placeholder="Enter Purpose"
-                required
-              />
+              <select id="sitInPurpose" required>
+                <option value="" disabled selected>Select Purpose</option>
+                <option value="Python">Python</option>
+                <option value="C programming">C programming</option>
+                <option value="Java">Java</option>
+                <option value="C#">C#</option>
+                <option value="JavaScript">JavaScript</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="sitInLab">Lab</label>
-              <input
-                type="text"
-                id="sitInLab"
-                placeholder="Enter Lab"
-                required
-              />
+              <select id="sitInLab" required>
+                <option value="" disabled selected>Select Lab</option>
+                <option value="524">Lab 524</option>
+                <option value="526">Lab 526</option>
+                <option value="530">Lab 530</option>
+                <option value="522">Lab 522</option>
+              </select>
             </div>
             <div class="form-group">
               <label

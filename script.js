@@ -43,6 +43,12 @@ function hideAll() {
   if (studentInformationAdmin) {
     studentInformationAdmin.style.display = "none";
   }
+  if (sitInPage) {
+    sitInPage.style.display = "none";
+  }
+  if (viewSitInRecordsPage) {
+    viewSitInRecordsPage.style.display = "none";
+  }
 }
 
 // Check if user is logged in on page load
@@ -959,6 +965,23 @@ const closeSearchModal = document.getElementById("closeSearchModal");
 const closeSitInModal = document.getElementById("closeSitInModal");
 const adminSearchLink = document.getElementById("adminSearchLink");
 const adminStudentsLink = document.getElementById("adminStudentsLink");
+const sitInLink = document.getElementById("sitInLink");
+const viewSitInRecordsLink = document.getElementById("viewSitInRecordsLink");
+const sitInPage = document.getElementById("sitInPage");
+const backToAdminFromSitIn = document.getElementById("backToAdminFromSitIn");
+const sitInPageLogoutBtn = document.getElementById("sitInPageLogoutBtn");
+const sitInTableBody = document.getElementById("sitInTableBody");
+
+const viewSitInRecordsPage = document.getElementById("viewSitInRecordsPage");
+const backToAdminFromViewSitIn = document.getElementById(
+  "backToAdminFromViewSitIn",
+);
+const viewSitInRecordsLogoutBtn = document.getElementById(
+  "viewSitInRecordsLogoutBtn",
+);
+const viewSitInRecordsTableBody = document.getElementById(
+  "viewSitInRecordsTableBody",
+);
 const searchStudentForm = document.getElementById("searchStudentForm");
 const sitInForm = document.getElementById("sitInForm");
 const studentInformationAdmin = document.querySelector(
@@ -984,6 +1007,38 @@ if (adminStudentsLink) {
   });
 }
 
+// Show Sit In page when clicking Sit-in nav link
+if (sitInLink) {
+  sitInLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    showSitInPage();
+  });
+}
+
+// Show View Sit-in Records page when clicking the link
+if (viewSitInRecordsLink) {
+  viewSitInRecordsLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    showViewSitInRecordsPage();
+  });
+}
+
+// Back to Admin Dashboard from View Sit-in Records
+if (backToAdminFromViewSitIn) {
+  backToAdminFromViewSitIn.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayAdminDashboard();
+  });
+}
+
+// Logout from View Sit-in Records Page
+if (viewSitInRecordsLogoutBtn) {
+  viewSitInRecordsLogoutBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    logout();
+  });
+}
+
 // Function to show student information admin section
 function showStudentInformationAdmin() {
   hideAll();
@@ -991,6 +1046,136 @@ function showStudentInformationAdmin() {
     studentInformationAdmin.style.display = "block";
     loadStudents();
   }
+}
+
+// Back to Admin Dashboard from Sit In Page
+if (backToAdminFromSitIn) {
+  backToAdminFromSitIn.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayAdminDashboard();
+  });
+}
+
+// Logout from Sit In Page
+if (sitInPageLogoutBtn) {
+  sitInPageLogoutBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    logout();
+  });
+}
+
+// Function to show sit-in page
+function showSitInPage() {
+  hideAll();
+  if (sitInPage) {
+    sitInPage.style.display = "block";
+    loadSitIns();
+  }
+}
+
+// Function to show View Sit-in Records page
+function showViewSitInRecordsPage() {
+  hideAll();
+  if (viewSitInRecordsPage) {
+    viewSitInRecordsPage.style.display = "block";
+    loadViewSitInRecords();
+  }
+}
+
+// Function to load all sit-in records
+async function loadViewSitInRecords() {
+  if (!viewSitInRecordsTableBody) return;
+
+  try {
+    const response = await fetch("/api/sit-ins-all");
+    const data = await response.json();
+
+    if (data.success) {
+      renderViewSitInRecordsTable(data.sitIns);
+    } else {
+      viewSitInRecordsTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: red;">${data.message}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loading sit-ins:", error);
+    viewSitInRecordsTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: red;">Error loading sit-ins</td></tr>`;
+  }
+}
+
+// Function to render view sit-in records table (with login/logout time)
+function renderViewSitInRecordsTable(sitIns) {
+  if (!viewSitInRecordsTableBody) return;
+
+  if (sitIns.length === 0) {
+    viewSitInRecordsTableBody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No ended records</td></tr>`;
+    return;
+  }
+
+  viewSitInRecordsTableBody.innerHTML = sitIns
+    .map(
+      (sitIn) => `
+      <tr>
+        <td>${sitIn.sit_in_id}</td>
+        <td>${sitIn.idNumber}</td>
+        <td>${sitIn.firstName} ${sitIn.lastName}</td>
+        <td>${sitIn.purpose}</td>
+        <td>Lab ${sitIn.lab}</td>
+        <td>${sitIn.session}</td>
+        <td><span class="status-finished">${sitIn.status}</span></td>
+        <td>${sitIn.date || "-"}</td>
+        <td>${sitIn.login_time ? sitIn.login_time.split(" ")[1] : "-"}</td>
+        <td>${sitIn.logout_time ? sitIn.logout_time.split(" ")[1] : "-"}</td>
+      </tr>
+    `,
+    )
+    .join("");
+}
+
+// Function to load sit-in records
+async function loadSitIns() {
+  if (!sitInTableBody) return;
+
+  try {
+    const response = await fetch("/api/sit-ins");
+    const data = await response.json();
+
+    if (data.success) {
+      renderSitInsTable(data.sitIns);
+    } else {
+      sitInTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">${data.message}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loading sit-ins:", error);
+    sitInTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Error loading sit-ins</td></tr>`;
+  }
+}
+
+// Function to render sit-ins table (Sit In page - with End Session button)
+function renderSitInsTable(sitIns) {
+  if (!sitInTableBody) return;
+
+  if (sitIns.length === 0) {
+    sitInTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No active sit-ins</td></tr>`;
+    return;
+  }
+
+  sitInTableBody.innerHTML = sitIns
+    .map(
+      (sitIn) => `
+      <tr>
+        <td>${sitIn.sit_in_id}</td>
+        <td>${sitIn.idNumber}</td>
+        <td>${sitIn.firstName} ${sitIn.lastName}</td>
+        <td>${sitIn.purpose}</td>
+        <td>Lab ${sitIn.lab}</td>
+        <td>${sitIn.session}</td>
+        <td><span class="status-active">${sitIn.status}</span></td>
+        <td>
+          <button class="action-btn" onclick="finishSitIn(${sitIn.sit_in_id})">End Session</button>
+        </td>
+      </tr>
+    `,
+    )
+    .join("");
 }
 
 // Function to open search modal
@@ -1139,9 +1324,10 @@ if (sitInForm) {
         document.getElementById("sitInRemainingSessions").textContent =
           data.remainingSessions;
 
-        // Reset form after short delay and close
+        // Close modal and navigate to sit-in page
         setTimeout(() => {
           closeSitInModalFunc();
+          showSitInPage();
         }, 1500);
       } else {
         messageEl.textContent = data.message;
@@ -1153,6 +1339,35 @@ if (sitInForm) {
       messageEl.className = "error";
     }
   });
+}
+
+// Function to finish sit-in
+async function finishSitIn(sitInId) {
+  if (!confirm("Are you sure you want to finish this sit-in?")) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/sit-in/finish", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sitInId: sitInId }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("Sit-in finished successfully!");
+      showViewSitInRecordsPage(); // Navigate to View Sit-in Records
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error("Error finishing sit-in:", error);
+    alert("Failed to finish sit-in. Please try again.");
+  }
 }
 
 // Initialize - check auth status on page load
