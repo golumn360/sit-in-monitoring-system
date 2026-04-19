@@ -210,6 +210,28 @@ function createTableSitIn() {
   );
 }
 
+function createTableNotifications() {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            type TEXT DEFAULT 'session_ended',
+            is_read INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )`,
+    (err) => {
+      if (err) {
+        console.error("Error creating notifications table:", err);
+      } else {
+        console.log("Notifications table ready");
+      }
+    },
+  );
+}
+
 function addSitInColumns() {
   // Add missing columns to existing sit_in table
   db.run(
@@ -508,6 +530,7 @@ initializeDatabase();
 createTableAnnouncements();
 createTableSitIn();
 addSitInColumns();
+createTableNotifications();
 
 // Announcements API
 // Create announcement (admin only)
@@ -866,7 +889,7 @@ app.post("/api/sit-in/finish", (req, res) => {
   }
 
   // First get the sit-in record to find the user
-  const getSitInSql = "SELECT user_id FROM sit_in WHERE id = ?";
+  const getSitInSql = "SELECT user_id, purpose, lab FROM sit_in WHERE id = ?";
   db.get(getSitInSql, [sitInId], (err, sitIn) => {
     if (err) {
       console.error("Get sit-in error:", err);
@@ -908,6 +931,18 @@ app.post("/api/sit-in/finish", (req, res) => {
             console.log("Session decremented for user:", sitIn.user_id);
           }
         });
+      }
+    });
+
+    // Create notification for the user
+    const notificationTitle = "Session Ended";
+    const notificationMessage = `Your sit-in session for ${sitIn.purpose} in Lab ${sitIn.lab} has been ended by the administrator.`;
+    const insertNotificationSql = `INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'session_ended')`;
+    db.run(insertNotificationSql, [sitIn.user_id, notificationTitle, notificationMessage], (err) => {
+      if (err) {
+        console.error("Error creating notification:", err);
+      } else {
+        console.log("Notification created for user:", sitIn.user_id);
       }
     });
 
@@ -1000,6 +1035,165 @@ app.get("/api/sit-ins", (req, res) => {
     res.json({
       success: true,
       sitIns: rows,
+    });
+  });
+});
+
+// ===== Get User's Sit-in History API =====
+app.get("/api/user/sit-in-history", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const userId = req.session.user.id;
+
+  const sql = `
+    SELECT 
+      id,
+      purpose,
+      lab,
+      session,
+      status,
+      created_at as login_time,
+      logout_time,
+      DATE(created_at) as date
+    FROM sit_in
+    WHERE user_id = ? AND status = 'Finished'
+    ORDER BY created_at DESC
+  `;
+
+  db.all(sql, [userId], (err, rows) => {
+    if (err) {
+      console.error("Get user sit-in history error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get sit-in history" });
+    }
+
+    res.json({
+      success: true,
+      history: rows,
+    });
+  });
+});
+
+// ===== Get User Notifications API =====
+app.get("/api/user/notifications", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const userId = req.session.user.id;
+
+  const sql = `
+    SELECT 
+      id,
+      title,
+      message,
+      type,
+      is_read,
+      created_at
+    FROM notifications
+    WHERE user_id = ?
+    ORDER BY created_at DESC
+    LIMIT 20
+  `;
+
+  db.all(sql, [userId], (err, rows) => {
+    if (err) {
+      console.error("Get notifications error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get notifications" });
+    }
+
+    res.json({
+      success: true,
+      notifications: rows,
+    });
+  });
+});
+
+// ===== Get Unread Notification Count API =====
+app.get("/api/user/notifications/unread-count", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const userId = req.session.user.id;
+
+  const sql = `SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0`;
+
+  db.get(sql, [userId], (err, row) => {
+    if (err) {
+      console.error("Get unread notification count error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to get notification count" });
+    }
+
+    res.json({
+      success: true,
+      count: row.count,
+    });
+  });
+});
+
+// ===== Mark Notification as Read API =====
+app.post("/api/user/notifications/:id/read", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const userId = req.session.user.id;
+  const notificationId = req.params.id;
+
+  const sql = `UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?`;
+  db.run(sql, [notificationId, userId], function (err) {
+    if (err) {
+      console.error("Mark notification as read error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to mark notification as read" });
+    }
+
+    res.json({
+      success: true,
+      message: "Notification marked as read",
+    });
+  });
+});
+
+// ===== Mark All Notifications as Read API =====
+app.post("/api/user/notifications/read-all", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const userId = req.session.user.id;
+
+  const sql = `UPDATE notifications SET is_read = 1 WHERE user_id = ?`;
+  db.run(sql, [userId], function (err) {
+    if (err) {
+      console.error("Mark all notifications as read error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to mark notifications as read" });
+    }
+
+    res.json({
+      success: true,
+      message: "All notifications marked as read",
     });
   });
 });

@@ -5,6 +5,8 @@ const userDashboard = document.getElementById("userDashboard");
 const editProfilePage = document.getElementById("editProfilePage");
 const adminDashboard = document.getElementById("adminDashboard");
 
+const userHistoryPage = document.getElementById("userHistoryPage");
+
 const loginLink = document.getElementById("loginLink");
 const backLogin = document.getElementById("backLogin");
 
@@ -23,7 +25,6 @@ const cancelEditProfile = document.getElementById("cancelEditProfile");
 const editProfileForm = document.getElementById("editProfileForm");
 const profilePicInput = document.getElementById("profilePicInput");
 const profilePicPreview = document.getElementById("profilePicPreview");
-const logoutBtnEdit = document.getElementById("logoutBtnEdit");
 
 let currentUser = null;
 
@@ -48,6 +49,9 @@ function hideAll() {
   }
   if (viewSitInRecordsPage) {
     viewSitInRecordsPage.style.display = "none";
+  }
+  if (userHistoryPage) {
+    userHistoryPage.style.display = "none";
   }
 }
 
@@ -458,6 +462,9 @@ function displayUserDashboard(user) {
 
   // Load announcements for user
   loadUserAnnouncements();
+  
+  // Load notification count
+  loadNotificationCount();
 }
 
 // Navigation Event Listeners
@@ -630,22 +637,6 @@ cancelEditProfile.addEventListener("click", function () {
   goToDashboard();
 });
 
-// Also handle logout from edit profile page
-if (logoutBtnEdit) {
-  logoutBtnEdit.addEventListener("click", async function (e) {
-    e.preventDefault();
-    try {
-      await fetch("/api/logout", {
-        method: "POST",
-      });
-      // Show logout success modal
-      showLogoutSuccessModal();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  });
-}
-
 // Admin logout handler
 const adminLogoutBtn = document.getElementById("adminLogoutBtn");
 if (adminLogoutBtn) {
@@ -667,27 +658,11 @@ if (adminLogoutBtn) {
 const backToAdminFromStudents = document.getElementById(
   "backToAdminFromStudents",
 );
-const studentAdminLogoutBtn = document.getElementById("studentAdminLogoutBtn");
 
 if (backToAdminFromStudents) {
   backToAdminFromStudents.addEventListener("click", function (e) {
     e.preventDefault();
     displayAdminDashboard();
-  });
-}
-
-if (studentAdminLogoutBtn) {
-  studentAdminLogoutBtn.addEventListener("click", async function (e) {
-    e.preventDefault();
-    try {
-      await fetch("/api/logout", {
-        method: "POST",
-      });
-      // Show logout success modal
-      showLogoutSuccessModal();
-    } catch (error) {
-      console.error("Student admin logout error:", error);
-    }
   });
 }
 
@@ -969,15 +944,11 @@ const sitInLink = document.getElementById("sitInLink");
 const viewSitInRecordsLink = document.getElementById("viewSitInRecordsLink");
 const sitInPage = document.getElementById("sitInPage");
 const backToAdminFromSitIn = document.getElementById("backToAdminFromSitIn");
-const sitInPageLogoutBtn = document.getElementById("sitInPageLogoutBtn");
 const sitInTableBody = document.getElementById("sitInTableBody");
 
 const viewSitInRecordsPage = document.getElementById("viewSitInRecordsPage");
 const backToAdminFromViewSitIn = document.getElementById(
   "backToAdminFromViewSitIn",
-);
-const viewSitInRecordsLogoutBtn = document.getElementById(
-  "viewSitInRecordsLogoutBtn",
 );
 const viewSitInRecordsTableBody = document.getElementById(
   "viewSitInRecordsTableBody",
@@ -1031,14 +1002,6 @@ if (backToAdminFromViewSitIn) {
   });
 }
 
-// Logout from View Sit-in Records Page
-if (viewSitInRecordsLogoutBtn) {
-  viewSitInRecordsLogoutBtn.addEventListener("click", function (e) {
-    e.preventDefault();
-    logout();
-  });
-}
-
 // Function to show student information admin section
 function showStudentInformationAdmin() {
   hideAll();
@@ -1053,14 +1016,6 @@ if (backToAdminFromSitIn) {
   backToAdminFromSitIn.addEventListener("click", function (e) {
     e.preventDefault();
     displayAdminDashboard();
-  });
-}
-
-// Logout from Sit In Page
-if (sitInPageLogoutBtn) {
-  sitInPageLogoutBtn.addEventListener("click", function (e) {
-    e.preventDefault();
-    logout();
   });
 }
 
@@ -1369,6 +1324,249 @@ async function finishSitIn(sitInId) {
     alert("Failed to finish sit-in. Please try again.");
   }
 }
+
+// ===== User History and Notification Functionality =====
+
+// User navigation elements
+const userHomeLink = document.getElementById("userHomeLink");
+const userHistoryLink = document.getElementById("userHistoryLink");
+const backToUserDashboard = document.getElementById("backToUserDashboard");
+const userNotificationLink = document.getElementById("userNotificationLink");
+const notificationModal = document.getElementById("notificationModal");
+const closeNotificationModal = document.getElementById("closeNotificationModal");
+const notificationList = document.getElementById("notificationList");
+const markAllReadBtn = document.getElementById("markAllReadBtn");
+const historyTableBody = document.getElementById("historyTableBody");
+
+// History page navigation handlers
+if (userHomeLink) {
+  userHomeLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayUserDashboard(currentUser);
+  });
+}
+
+if (userHistoryLink) {
+  userHistoryLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    showUserHistoryPage();
+  });
+}
+
+if (backToUserDashboard) {
+  backToUserDashboard.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayUserDashboard(currentUser);
+  });
+}
+
+const userHistoryLink2 = document.getElementById("userHistoryLink2");
+if (userHistoryLink2) {
+  userHistoryLink2.addEventListener("click", function (e) {
+    e.preventDefault();
+    showUserHistoryPage();
+  });
+}
+
+// Notification link handlers
+if (userNotificationLink) {
+  userNotificationLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    openNotificationModal();
+  });
+}
+
+if (closeNotificationModal) {
+  closeNotificationModal.addEventListener("click", function () {
+    notificationModal.style.display = "none";
+  });
+}
+
+if (markAllReadBtn) {
+  markAllReadBtn.addEventListener("click", markAllNotificationsAsRead);
+}
+
+// Function to show user history page
+function showUserHistoryPage() {
+  hideAll();
+  if (userHistoryPage) {
+    userHistoryPage.style.display = "block";
+    loadUserHistory();
+  }
+}
+
+// Function to load user history
+async function loadUserHistory() {
+  if (!historyTableBody) return;
+
+  try {
+    const response = await fetch("/api/user/sit-in-history");
+    const data = await response.json();
+
+    if (data.success) {
+      renderUserHistoryTable(data.history);
+    } else {
+      historyTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">${data.message}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loading user history:", error);
+    historyTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">Error loading history</td></tr>`;
+  }
+}
+
+// Function to render user history table
+function renderUserHistoryTable(history) {
+  if (!historyTableBody) return;
+
+  if (history.length === 0) {
+    historyTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No sit-in history yet</td></tr>`;
+    return;
+  }
+
+  historyTableBody.innerHTML = history
+    .map(
+      (record) => `
+      <tr>
+        <td>${record.id}</td>
+        <td>${record.purpose}</td>
+        <td>Lab ${record.lab}</td>
+        <td>${record.session}</td>
+        <td><span class="status-finished">Ended</span></td>
+        <td>${record.date || "-"}</td>
+        <td>${record.login_time ? record.login_time.split(" ")[1] : "-"}</td>
+        <td>${record.logout_time ? record.logout_time.split(" ")[1] : "-"}</td>
+      </tr>
+    `
+    )
+    .join("");
+}
+
+// Function to load notification count
+async function loadNotificationCount() {
+  try {
+    const response = await fetch("/api/user/notifications/unread-count");
+    const data = await response.json();
+
+    if (data.success) {
+      updateNotificationBadge(data.count);
+    }
+  } catch (error) {
+    console.error("Error loading notification count:", error);
+  }
+}
+
+// Function to update notification badge
+function updateNotificationBadge(count) {
+  const badge = document.getElementById("notificationBadge");
+  const historyBadge = document.getElementById("historyNotificationBadge");
+  
+  if (count > 0) {
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = "inline-block";
+    }
+    if (historyBadge) {
+      historyBadge.textContent = count;
+      historyBadge.style.display = "inline-block";
+    }
+  } else {
+    if (badge) {
+      badge.style.display = "none";
+    }
+    if (historyBadge) {
+      historyBadge.style.display = "none";
+    }
+  }
+}
+
+// Function to open notification modal
+async function openNotificationModal() {
+  notificationModal.style.display = "block";
+  await loadNotifications();
+}
+
+// Function to load notifications
+async function loadNotifications() {
+  try {
+    const response = await fetch("/api/user/notifications");
+    const data = await response.json();
+
+    if (data.success) {
+      renderNotifications(data.notifications);
+    }
+  } catch (error) {
+    console.error("Error loading notifications:", error);
+  }
+}
+
+// Function to render notifications
+function renderNotifications(notifications) {
+  if (!notificationList) return;
+
+  if (notifications.length === 0) {
+    notificationList.innerHTML = `<p style="text-align: center; color: #666;">No notifications</p>`;
+    return;
+  }
+
+  notificationList.innerHTML = notifications
+    .map(
+      (notif) => `
+      <div class="notification-item ${notif.is_read ? 'read' : 'unread'}">
+        <div class="notification-title">${escapeHtml(notif.title)}</div>
+        <div class="notification-message">${escapeHtml(notif.message)}</div>
+        <div class="notification-date">${new Date(notif.created_at).toLocaleString()}</div>
+        ${notif.is_read ? '' : '<button class="mark-read-item-btn" onclick="markNotificationAsRead(' + notif.id + ')">Mark as read</button>'}
+      </div>
+    `
+    )
+    .join("");
+}
+
+// Function to mark notification as read
+async function markNotificationAsRead(notifId) {
+  try {
+    const response = await fetch(`/api/user/notifications/${notifId}/read`, {
+      method: "POST",
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      await loadNotifications();
+      await loadNotificationCount();
+    }
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+  }
+}
+
+// Make markNotificationAsRead available globally
+window.markNotificationAsRead = markNotificationAsRead;
+
+// Function to mark all notifications as read
+async function markAllNotificationsAsRead() {
+  try {
+    const response = await fetch("/api/user/notifications/read-all", {
+      method: "POST",
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      await loadNotifications();
+      await loadNotificationCount();
+    }
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error);
+  }
+}
+
+// Handle notification modal close on outside click
+window.addEventListener("click", function (e) {
+  if (e.target === notificationModal) {
+    notificationModal.style.display = "none";
+  }
+});
+
+// ===== End of User History and Notification Functionality =====
 
 // Initialize - check auth status on page load
 checkAuth();
