@@ -131,8 +131,8 @@ function createDefaultAdmin() {
 
   // Check if admin already exists
   db.get(
-    "SELECT id FROM users WHERE email = ?",
-    [adminEmail],
+    "SELECT id FROM users WHERE idNumber = ?",
+    [adminIdNumber],
     async (err, user) => {
       if (err) {
         console.error("Error checking for admin:", err);
@@ -341,17 +341,17 @@ app.post("/api/register", async (req, res) => {
 
 // Login endpoint
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
+  const { idno, password } = req.body;
 
-  if (!email || !password) {
+  if (!idno || !password) {
     return res
       .status(400)
-      .json({ success: false, message: "Please enter email and password" });
+      .json({ success: false, message: "Please enter ID number and password" });
   }
 
-  const sql = "SELECT * FROM users WHERE email = ?";
+  const sql = "SELECT * FROM users WHERE idNumber = ?";
 
-  db.get(sql, [email], async (err, user) => {
+  db.get(sql, [idno], async (err, user) => {
     if (err) {
       console.error("Login error:", err);
       return res.status(500).json({ success: false, message: "Server error" });
@@ -360,7 +360,7 @@ app.post("/api/login", (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, message: "Invalid ID number or password" });
     }
 
     try {
@@ -369,7 +369,7 @@ app.post("/api/login", (req, res) => {
       if (!isMatch) {
         return res
           .status(401)
-          .json({ success: false, message: "Invalid email or password" });
+          .json({ success: false, message: "Invalid ID number or password" });
       }
 
       // Set user session

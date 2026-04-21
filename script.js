@@ -562,7 +562,7 @@ registrationForm.addEventListener("submit", async function (e) {
 loginForm.addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const email = document.getElementById("loginemail").value;
+  const idno = document.getElementById("loginIdno").value;
   const password = document.getElementById("loginpassword").value;
   const messageEl = document.getElementById("loginMessage");
 
@@ -572,7 +572,7 @@ loginForm.addEventListener("submit", async function (e) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ idno, password }),
     });
 
     const data = await response.json();
