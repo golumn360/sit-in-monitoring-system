@@ -436,32 +436,38 @@ label {
 .edit-profile-container {
   display: flex;
   justify-content: center;
-  padding: 40px 20px;
+  align-items: flex-start;
+  padding: 15px;
+  min-height: calc(100vh - 80px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .edit-profile-form {
   background-color: white;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border-radius: 15px;
+  border: black 2px solid;
   width: 100%;
-  max-width: 700px;
+  max-width: 850px;
+  box-sizing: border-box;
 }
 
 .profile-pic-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
+  min-width: 100px;
 }
 
 .profile-pic-section .profile-pic-preview {
-  width: 150px;
-  height: 150px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  margin-bottom: 15px;
-  border: 4px solid #0077cc;
+  margin-bottom: 8px;
+  border: 3px solid #0077cc;
   background-color: #f0f0f0;
 }
 
@@ -477,12 +483,12 @@ label {
 
 .profile-pic-section .upload-btn {
   display: inline-block;
-  padding: 10px 25px;
+  padding: 4px 12px;
   background-color: #0077cc;
   color: white;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11px;
   transition: background-color 0.3s;
 }
 
@@ -492,8 +498,8 @@ label {
 
 .edit-profile-form .form-row {
   display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .edit-profile-form .form-group {
@@ -502,19 +508,20 @@ label {
 
 .edit-profile-form label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   font-weight: bold;
   color: #333;
+  font-size: 12px;
 }
 
 .edit-profile-form input[type="text"],
 .edit-profile-form input[type="email"] {
   width: 100%;
-  padding: 12px;
+  padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .edit-profile-form input[readonly] {
@@ -524,18 +531,18 @@ label {
 
 .edit-profile-form .form-actions {
   display: flex;
-  gap: 15px;
-  margin-top: 30px;
+  gap: 12px;
+  margin-top: 15px;
 }
 
 .edit-profile-form .save-btn {
   flex: 1;
-  padding: 14px;
+  padding: 8px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -546,12 +553,12 @@ label {
 
 .edit-profile-form .cancel-btn {
   flex: 1;
-  padding: 14px;
+  padding: 8px;
   background-color: #6c757d;
   color: white;
   border: none;
   border-radius: 5px;
-  font-size: 16px;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -593,12 +600,14 @@ label {
 
 .admin-overview-page {
   flex: 1;
-  padding: 10px;
+  padding: 15px;
   background-color: white;
   border-radius: 15px;
   border: black 2px solid;
   overflow-y: auto;
-  min-height: 0;
+  min-height: 350px;
+  max-height: 350px;
+  box-sizing: border-box;
 }
 
 .admin-overview-page h3,
@@ -647,6 +656,7 @@ label {
 .announcement-history {
   border-top: 1px solid #ccc;
   padding-top: 10px;
+  min-height: 180px;
 }
 
 .announcement-history h4 {
@@ -656,7 +666,8 @@ label {
 }
 
 .announcement-list {
-  max-height: 150px;
+  max-height: 200px;
+  min-height: 180px;
   overflow-y: auto;
 }
 
@@ -725,11 +736,15 @@ label {
 }
 
 .admin-announcement-page {
-  flex: 2;
+  flex: 1;
   background-color: white;
-  padding: 0 15px 15px 15px;
+  padding: 15px;
   border-radius: 15px;
   border: black 2px solid;
+  min-height: 350px;
+  max-height: 350px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .admin-links {
@@ -754,12 +769,14 @@ label {
 .modal-content {
   background-color: white;
   margin: 2% auto;
-  padding: 35px;
+  padding: 30px;
   border-radius: 10px;
   width: 90%;
-  max-width: 550px;
+  max-width: 650px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-close {
@@ -780,8 +797,9 @@ label {
 .modal-content h2 {
   text-align: center;
   color: #0077cc;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   margin-top: 0;
+  font-size: 20px;
 }
 
 .modal-content .form-group {
@@ -797,13 +815,14 @@ label {
 
 .modal-content input[type="text"],
 .modal-content input[type="email"],
+.modal-content input[type="password"],
 .modal-content select {
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 13px;
   font-family: Tahoma;
 }
 
@@ -815,6 +834,24 @@ label {
 .modal-content select {
   background-color: white;
   cursor: pointer;
+}
+
+.modal-content .form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.modal-content .form-row .form-group {
+  flex: 1;
+}
+
+.modal-content .form-row label {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: bold;
+  font-size: 12px;
+  color: #333;
 }
 
 /* Success Modal Styles */
@@ -890,18 +927,19 @@ label {
 
 .modal-buttons {
   display: flex;
-  gap: 15px;
-  margin-top: 15px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.modal-buttons .cancel-btn {
+.modal-buttons .cancel-btn,
+.modal-buttons .save-btn {
   flex: 1;
-  padding: 18px;
+  padding: 12px;
   background-color: #6c757d;
   color: white;
   border: none;
   border-radius: 5px;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -909,6 +947,14 @@ label {
 
 .modal-buttons .cancel-btn:hover {
   background-color: #5a6268;
+}
+
+.modal-buttons .save-btn {
+  background-color: #28a745;
+}
+
+.modal-buttons .save-btn:hover {
+  background-color: #218838;
 }
 
 .modal-buttons .sit-in-btn {
@@ -966,11 +1012,11 @@ label {
 
 .student-table-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
 }
 
 .student-table-header button {
@@ -1012,12 +1058,14 @@ label {
 
 /* Sit In Page Styles */
 .sit-in-content {
+  flex: 1;
   padding: 20px;
   background-color: white;
   border-radius: 15px;
   border: black 2px solid;
   margin: 10px 20px 20px 20px;
-  min-height: calc(100vh - 100px);
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .sit-in-content h2,
@@ -1273,23 +1321,14 @@ label {
 
 .history-content,
 .view-sit-in-records-content {
+  flex: 1;
   padding: 20px;
   background-color: white;
   border-radius: 15px;
   border: black 2px solid;
   margin: 10px 20px 20px 20px;
   overflow-y: auto;
-  min-height: calc(100vh - 100px);
-}
-
-.view-sit-in-records-content {
-  padding: 20px;
-  background-color: white;
-  border-radius: 15px;
-  border: black 2px solid;
-  margin: 10px 20px 20px 20px;
-  overflow-y: auto;
-  min-height: calc(100vh - 100px);
+  min-height: 0;
 }
 
 .history-content h3 {

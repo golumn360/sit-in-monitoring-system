@@ -958,6 +958,12 @@ const sitInForm = document.getElementById("sitInForm");
 const studentInformationAdmin = document.querySelector(
   ".student-information-admin",
 );
+const addStudentBtn = document.getElementById("addStudentBtn");
+const resetSessionBtn = document.getElementById("resetSessionBtn");
+const addStudentModal = document.getElementById("addStudentModal");
+const addStudentForm = document.getElementById("addStudentForm");
+const closeAddStudentModal = document.getElementById("closeAddStudentModal");
+const cancelAddStudentBtn = document.getElementById("cancelAddStudent");
 
 // Store searched student data
 let searchedStudent = null;
@@ -1010,6 +1016,139 @@ function showStudentInformationAdmin() {
     loadStudents();
   }
 }
+
+// Handle Add Student button
+if (addStudentBtn) {
+  addStudentBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    openAddStudentModal();
+  });
+}
+
+// Handle Reset All Sessions button
+if (resetSessionBtn) {
+  resetSessionBtn.addEventListener("click", async function (e) {
+    e.preventDefault();
+    if (confirm("Are you sure you want to reset all sessions to 30?")) {
+      try {
+        const response = await fetch("/api/admin/reset-all-sessions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert("All sessions have been reset to 30!");
+          loadStudents();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error("Error resetting sessions:", error);
+        alert("Failed to reset sessions");
+      }
+    }
+  });
+}
+
+// Add Student Modal functions
+function openAddStudentModal() {
+  if (addStudentModal) {
+    addStudentModal.style.display = "block";
+    document.getElementById("addStudentMessage").textContent = "";
+  }
+}
+
+function closeAddStudentModalFunc() {
+  if (addStudentModal) {
+    addStudentModal.style.display = "none";
+  }
+  if (addStudentForm) {
+    addStudentForm.reset();
+  }
+}
+
+// Close Add Student Modal
+if (closeAddStudentModal) {
+  closeAddStudentModal.addEventListener("click", closeAddStudentModalFunc);
+}
+
+if (cancelAddStudentBtn) {
+  cancelAddStudentBtn.addEventListener("click", closeAddStudentModalFunc);
+}
+
+// Handle Add Student form submission
+if (addStudentForm) {
+  addStudentForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const password = document.getElementById("addStudentPassword").value;
+    const repassword = document.getElementById("addStudentRepassword").value;
+    const messageEl = document.getElementById("addStudentMessage");
+
+    if (password !== repassword) {
+      messageEl.textContent = "Passwords do not match!";
+      messageEl.style.color = "red";
+      return;
+    }
+
+    if (password.length < 6) {
+      messageEl.textContent = "Password must be at least 6 characters!";
+      messageEl.style.color = "red";
+      return;
+    }
+
+    const formData = {
+      idno: document.getElementById("addStudentIdno").value,
+      fname: document.getElementById("addStudentFname").value,
+      lname: document.getElementById("addStudentLname").value,
+      mname: document.getElementById("addStudentMname").value,
+      level: document.getElementById("addStudentLevel").value,
+      course: document.getElementById("addStudentCourse").value,
+      email: document.getElementById("addStudentEmail").value,
+      address: document.getElementById("addStudentAddress").value,
+      password: password,
+    };
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        messageEl.textContent = "Student added successfully!";
+        messageEl.style.color = "green";
+        setTimeout(() => {
+          closeAddStudentModalFunc();
+          loadStudents();
+        }, 1500);
+      } else {
+        messageEl.textContent = data.message;
+        messageEl.style.color = "red";
+      }
+    } catch (error) {
+      console.error("Error adding student:", error);
+      messageEl.textContent = "Failed to add student";
+      messageEl.style.color = "red";
+    }
+  });
+}
+
+// Close modal when clicking outside
+window.addEventListener("click", function (e) {
+  if (e.target === addStudentModal) {
+    closeAddStudentModalFunc();
+  }
+});
 
 // Back to Admin Dashboard from Sit In Page
 if (backToAdminFromSitIn) {

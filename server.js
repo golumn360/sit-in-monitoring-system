@@ -800,6 +800,35 @@ app.put("/api/admin/students/:id", (req, res) => {
   );
 });
 
+// ===== Admin Reset All Sessions API =====
+app.post("/api/admin/reset-all-sessions", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const sql = `UPDATE users SET sessionLeft = 30 WHERE isAdmin = 0`;
+
+  db.run(sql, [], function (err) {
+    if (err) {
+      console.error("Reset all sessions error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to reset sessions" });
+    }
+
+    res.json({
+      success: true,
+      message: "All sessions reset to 30",
+    });
+  });
+});
+
 // ===== Admin Record Sit-in API =====
 app.post("/api/admin/sit-in", (req, res) => {
   // Check if user is authenticated and is admin
