@@ -53,6 +53,9 @@ function hideAll() {
   if (userHistoryPage) {
     userHistoryPage.style.display = "none";
   }
+  if (feedbackReportsPage) {
+    feedbackReportsPage.style.display = "none";
+  }
 }
 
 // Check if user is logged in on page load
@@ -942,6 +945,7 @@ const adminSearchLink = document.getElementById("adminSearchLink");
 const adminStudentsLink = document.getElementById("adminStudentsLink");
 const sitInLink = document.getElementById("sitInLink");
 const viewSitInRecordsLink = document.getElementById("viewSitInRecordsLink");
+const feedbackReportsLink = document.getElementById("feedbackReportsLink");
 const sitInPage = document.getElementById("sitInPage");
 const backToAdminFromSitIn = document.getElementById("backToAdminFromSitIn");
 const sitInTableBody = document.getElementById("sitInTableBody");
@@ -953,6 +957,10 @@ const backToAdminFromViewSitIn = document.getElementById(
 const viewSitInRecordsTableBody = document.getElementById(
   "viewSitInRecordsTableBody",
 );
+
+const feedbackReportsPage = document.getElementById("feedbackReportsPage");
+const backToAdminFromFeedback = document.getElementById("backToAdminFromFeedback");
+const feedbackTableBody = document.getElementById("feedbackTableBody");
 const searchStudentForm = document.getElementById("searchStudentForm");
 const sitInForm = document.getElementById("sitInForm");
 const studentInformationAdmin = document.querySelector(
@@ -1000,9 +1008,25 @@ if (viewSitInRecordsLink) {
   });
 }
 
+// Show Feedback Reports page when clicking the link
+if (feedbackReportsLink) {
+  feedbackReportsLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    showFeedbackReportsPage();
+  });
+}
+
 // Back to Admin Dashboard from View Sit-in Records
 if (backToAdminFromViewSitIn) {
   backToAdminFromViewSitIn.addEventListener("click", function (e) {
+    e.preventDefault();
+    displayAdminDashboard();
+  });
+}
+
+// Back to Admin Dashboard from Feedback Reports
+if (backToAdminFromFeedback) {
+  backToAdminFromFeedback.addEventListener("click", function (e) {
     e.preventDefault();
     displayAdminDashboard();
   });
@@ -1223,6 +1247,88 @@ function renderViewSitInRecordsTable(sitIns) {
     )
     .join("");
 }
+
+// Function to show Feedback Reports page
+function showFeedbackReportsPage() {
+  hideAll();
+  if (feedbackReportsPage) {
+    feedbackReportsPage.style.display = "block";
+    loadFeedback();
+  }
+}
+
+// Function to load feedback
+async function loadFeedback() {
+  if (!feedbackTableBody) return;
+
+  try {
+    const response = await fetch("/api/admin/feedback");
+    const data = await response.json();
+
+    if (data.success) {
+      renderFeedbackTable(data.feedback);
+    } else {
+      feedbackTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">${data.message}</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error loading feedback:", error);
+    feedbackTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Error loading feedback</td></tr>`;
+  }
+}
+
+// Function to render feedback table
+function renderFeedbackTable(feedback) {
+  if (!feedbackTableBody) return;
+
+  if (feedback.length === 0) {
+    feedbackTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No feedback yet</td></tr>`;
+    return;
+  }
+
+  feedbackTableBody.innerHTML = feedback
+    .map(
+      (fb) => `
+      <tr onclick="openFeedbackDetail(${fb.id}, '${fb.idNumber}', '${fb.firstName} ${fb.lastName}', '${fb.sit_in_id || ''}', '${fb.purpose || ''}', '${fb.lab || ''}', '${fb.message}', '${new Date(fb.created_at).toLocaleString()}')" style="cursor: pointer;">
+        <td>${fb.id}</td>
+        <td>${fb.idNumber}</td>
+        <td>${fb.firstName} ${fb.lastName}</td>
+        <td>${fb.sit_in_id ? 'SIT-' + fb.sit_in_id + ' (' + (fb.purpose || '') + ', Lab ' + (fb.lab || '') + ')' : '-'}</td>
+        <td>${fb.message.substring(0, 30)}${fb.message.length > 30 ? '...' : ''}</td>
+        <td>${new Date(fb.created_at).toLocaleString()}</td>
+      </tr>
+    `
+    )
+    .join("");
+}
+
+// Feedback detail modal functions
+const feedbackDetailModal = document.getElementById("feedbackDetailModal");
+const closeFeedbackDetailModal = document.getElementById("closeFeedbackDetailModal");
+
+function openFeedbackDetail(id, idNumber, name, sitInId, purpose, lab, message, date) {
+  if (feedbackDetailModal) {
+    document.getElementById("feedbackDetailIdNumber").textContent = idNumber || "N/A";
+    document.getElementById("feedbackDetailName").textContent = name || "N/A";
+    document.getElementById("feedbackDetailSession").textContent = sitInId ? `SIT-${sitInId} (${purpose}, Lab ${lab})` : "N/A";
+    document.getElementById("feedbackDetailDate").textContent = date || "N/A";
+    document.getElementById("feedbackDetailMessage").textContent = message || "No message";
+    feedbackDetailModal.style.display = "block";
+  }
+}
+
+window.openFeedbackDetail = openFeedbackDetail;
+
+if (closeFeedbackDetailModal) {
+  closeFeedbackDetailModal.addEventListener("click", function() {
+    feedbackDetailModal.style.display = "none";
+  });
+}
+
+window.addEventListener("click", function(e) {
+  if (e.target === feedbackDetailModal) {
+    feedbackDetailModal.style.display = "none";
+  }
+});
 
 // Function to load sit-in records
 async function loadSitIns() {
@@ -1477,6 +1583,92 @@ const notificationList = document.getElementById("notificationList");
 const markAllReadBtn = document.getElementById("markAllReadBtn");
 const historyTableBody = document.getElementById("historyTableBody");
 
+
+function openFeedbackModal() {
+  if (feedbackModal) {
+    feedbackModal.style.display = "block";
+    document.getElementById("feedbackMessageText").textContent = "";
+    document.getElementById("feedbackSitIn").value = "";
+    document.getElementById("feedbackMessage").value = "";
+  }
+}
+
+function openFeedbackForSitIn(sitInId) {
+  if (feedbackModal) {
+    feedbackModal.style.display = "block";
+    document.getElementById("feedbackMessageText").textContent = "";
+    document.getElementById("feedbackSitIn").value = sitInId;
+    document.getElementById("feedbackMessage").value = "";
+  }
+}
+
+window.openFeedbackForSitIn = openFeedbackForSitIn;
+
+function closeFeedbackModalFunc() {
+  if (feedbackModal) {
+    feedbackModal.style.display = "none";
+  }
+  if (feedbackForm) {
+    feedbackForm.reset();
+  }
+}
+
+if (closeFeedbackModal) {
+  closeFeedbackModal.addEventListener("click", closeFeedbackModalFunc);
+}
+
+if (cancelFeedbackBtn) {
+  cancelFeedbackBtn.addEventListener("click", closeFeedbackModalFunc);
+}
+
+if (feedbackForm) {
+  feedbackForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const sitInId = document.getElementById("feedbackSitIn").value;
+    const message = document.getElementById("feedbackMessage").value;
+    const messageEl = document.getElementById("feedbackMessageText");
+
+    if (!sitInId) {
+      messageEl.textContent = "Please select a sit-in session";
+      messageEl.style.color = "red";
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sitInId, message }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        messageEl.textContent = "Feedback submitted successfully!";
+        messageEl.style.color = "green";
+        setTimeout(() => {
+          closeFeedbackModalFunc();
+        }, 1500);
+      } else {
+        messageEl.textContent = data.message;
+        messageEl.style.color = "red";
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      messageEl.textContent = "Failed to submit feedback";
+      messageEl.style.color = "red";
+    }
+  });
+}
+
+window.addEventListener("click", function (e) {
+  if (e.target === feedbackModal) {
+    closeFeedbackModalFunc();
+  }
+});
+
 // History page navigation handlers
 if (userHomeLink) {
   userHomeLink.addEventListener("click", function (e) {
@@ -1569,16 +1761,32 @@ function renderUserHistoryTable(history) {
         <td>${record.id}</td>
         <td>${record.purpose}</td>
         <td>Lab ${record.lab}</td>
-        <td>${record.session}</td>
         <td><span class="status-finished">Ended</span></td>
         <td>${record.date || "-"}</td>
         <td>${record.login_time ? record.login_time.split(" ")[1] : "-"}</td>
         <td>${record.logout_time ? record.logout_time.split(" ")[1] : "-"}</td>
+        <td><button class="feedback-btn-row" onclick="openFeedbackForSitIn(${record.id})">Feedback</button></td>
       </tr>
     `
     )
     .join("");
 }
+
+// Function to open feedback modal for specific sit-in
+function openFeedbackForSitIn(sitInId) {
+  if (feedbackModal) {
+    feedbackModal.style.display = "block";
+    document.getElementById("feedbackMessageText").textContent = "";
+    
+    const selectEl = document.getElementById("feedbackSitIn");
+    if (selectEl) {
+      selectEl.value = sitInId;
+      selectEl.disabled = true;
+    }
+  }
+}
+
+window.openFeedbackForSitIn = openFeedbackForSitIn;
 
 // Function to load notification count
 async function loadNotificationCount() {

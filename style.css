@@ -946,6 +946,24 @@ label {
   color: #333;
 }
 
+.modal-content textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 14px;
+  font-family: Tahoma, sans-serif;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modal-content textarea:focus {
+  outline: none;
+  border-color: #0077cc;
+  box-shadow: 0 0 8px rgba(0, 119, 204, 0.3);
+}
+
 .modal-content input[type="text"],
 .modal-content input[type="email"],
 .modal-content input[type="password"],
@@ -957,6 +975,12 @@ label {
   box-sizing: border-box;
   font-size: 13px;
   font-family: Tahoma;
+}
+
+.modal-content select:focus {
+  outline: none;
+  border-color: #0077cc;
+  box-shadow: 0 0 8px rgba(0, 119, 204, 0.3);
 }
 
 .modal-content input[readonly] {
@@ -1208,6 +1232,108 @@ label {
   color: #333;
   margin-bottom: 20px;
   text-align: center;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.history-header h3 {
+  margin: 0;
+}
+
+.feedback-btn {
+  padding: 10px 20px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.feedback-btn:hover {
+  background-color: #005fa3;
+  transform: translateY(-1px);
+}
+
+.feedback-btn-row {
+  padding: 6px 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.feedback-btn-row:hover {
+  background-color: #218838;
+}
+
+.feedback-content {
+  padding: 20px;
+  background-color: white;
+  border-radius: 15px;
+  border: black 2px solid;
+  margin: 10px 20px 20px 20px;
+  overflow-y: auto;
+  min-height: calc(100vh - 100px);
+}
+
+.feedback-content h2 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.feedback-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.feedback-table thead {
+  background: linear-gradient(135deg, #005fa3 0%, #0077cc 100%);
+  color: white;
+}
+
+.feedback-table th,
+.feedback-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
+.feedback-table tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.feedback-reports-page {
+  display: none;
+  height: 100vh;
+  overflow: hidden;
+  flex-direction: column;
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+    url("skybackground.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .sit-in-table-container {
@@ -1632,4 +1758,39 @@ label {
 
 .mark-read-item-btn:hover {
   background-color: #005fa3;
+}
+
+/* Feedback Detail Modal */
+.feedback-detail-content {
+  padding: 10px 0;
+}
+
+.feedback-detail-content .detail-row {
+  margin-bottom: 15px;
+}
+
+.feedback-detail-content .detail-row label {
+  display: block;
+  font-weight: bold;
+  color: #0077cc;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.feedback-detail-content .detail-row span {
+  color: #333;
+  font-size: 14px;
+}
+
+.feedback-message {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #0077cc;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }

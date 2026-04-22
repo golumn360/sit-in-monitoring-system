@@ -531,6 +531,122 @@ createTableAnnouncements();
 createTableSitIn();
 addSitInColumns();
 createTableNotifications();
+createTableFeedback();
+
+// Feedback API
+function createTableFeedback() {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            sit_in_id INTEGER NOT NULL,
+            message TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (sit_in_id) REFERENCES sit_in(id)
+        )`,
+    function(err) {
+      if (err) {
+        console.error("Error creating feedback table:", err);
+      } else {
+        console.log("Feedback table ready");
+      }
+    }
+  );
+  
+  // Add sit_in_id column if it doesn't exist
+  db.run(`ALTER TABLE feedback ADD COLUMN sit_in_id INTEGER`, function(err) {
+    if (err && !err.message.includes("duplicate")) {
+      console.log("sit_in_id column may already exist");
+    } else {
+      console.log("sit_in_id column added");
+    }
+  });
+}
+
+// Submit Feedback API
+app.post("/api/feedback", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  const { sitInId, message } = req.body;
+
+  if (!sitInId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Please select a sit-in session" });
+  }
+
+  if (!message || message.trim() === "") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Please enter your feedback" });
+  }
+
+  const userId = req.session.user.id;
+  const sql = `INSERT INTO feedback (user_id, sit_in_id, message) VALUES (?, ?, ?)`;
+
+  db.run(sql, [userId, sitInId, message.trim()], function(err) {
+    if (err) {
+      console.error("Error submitting feedback:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to submit feedback" });
+    }
+
+    res.json({
+      success: true,
+      message: "Feedback submitted successfully!",
+    });
+  });
+});
+
+// Get All Feedback API (Admin only)
+app.get("/api/admin/feedback", (req, res) => {
+  if (!req.session.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (!req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const sql = `
+    SELECT 
+      f.id,
+      f.message,
+      f.created_at,
+      f.sit_in_id,
+      u.idNumber,
+      u.firstName,
+      u.lastName,
+      s.purpose,
+      s.lab
+    FROM feedback f
+    JOIN users u ON f.user_id = u.id
+    LEFT JOIN sit_in s ON f.sit_in_id = s.id
+    ORDER BY f.created_at DESC
+  `;
+
+db.all(sql, [], function(err, rows) {
+    if (err) {
+      console.error("Error fetching feedback:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch feedback" });
+    }
+
+    res.json({
+      success: true,
+      feedback: rows,
+    });
+  });
+});
 
 // Announcements API
 // Create announcement (admin only)
