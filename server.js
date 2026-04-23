@@ -232,6 +232,28 @@ function createTableNotifications() {
   );
 }
 
+function createTableReservations() {
+  db.run(
+    `CREATE TABLE IF NOT EXISTS reservations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            lab TEXT NOT NULL,
+            purpose TEXT NOT NULL,
+            reservation_date DATE NOT NULL,
+            status TEXT DEFAULT 'Pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )`,
+    (err) => {
+      if (err) {
+        console.error("Error creating reservations table:", err);
+      } else {
+        console.log("Reservations table ready");
+      }
+    },
+  );
+}
+
 function addSitInColumns() {
   // Add missing columns to existing sit_in table
   db.run(
@@ -531,6 +553,7 @@ createTableAnnouncements();
 createTableSitIn();
 addSitInColumns();
 createTableNotifications();
+createTableReservations();
 createTableFeedback();
 
 // Feedback API
@@ -545,17 +568,17 @@ function createTableFeedback() {
             FOREIGN KEY (user_id) REFERENCES users(id),
             FOREIGN KEY (sit_in_id) REFERENCES sit_in(id)
         )`,
-    function(err) {
+    function (err) {
       if (err) {
         console.error("Error creating feedback table:", err);
       } else {
         console.log("Feedback table ready");
       }
-    }
+    },
   );
-  
+
   // Add sit_in_id column if it doesn't exist
-  db.run(`ALTER TABLE feedback ADD COLUMN sit_in_id INTEGER`, function(err) {
+  db.run(`ALTER TABLE feedback ADD COLUMN sit_in_id INTEGER`, function (err) {
     if (err && !err.message.includes("duplicate")) {
       console.log("sit_in_id column may already exist");
     } else {
@@ -589,7 +612,7 @@ app.post("/api/feedback", (req, res) => {
   const userId = req.session.user.id;
   const sql = `INSERT INTO feedback (user_id, sit_in_id, message) VALUES (?, ?, ?)`;
 
-  db.run(sql, [userId, sitInId, message.trim()], function(err) {
+  db.run(sql, [userId, sitInId, message.trim()], function (err) {
     if (err) {
       console.error("Error submitting feedback:", err);
       return res
@@ -633,7 +656,7 @@ app.get("/api/admin/feedback", (req, res) => {
     ORDER BY f.created_at DESC
   `;
 
-db.all(sql, [], function(err, rows) {
+  db.all(sql, [], function (err, rows) {
     if (err) {
       console.error("Error fetching feedback:", err);
       return res
@@ -1083,13 +1106,17 @@ app.post("/api/sit-in/finish", (req, res) => {
     const notificationTitle = "Session Ended";
     const notificationMessage = `Your sit-in session for ${sitIn.purpose} in Lab ${sitIn.lab} has been ended by the administrator.`;
     const insertNotificationSql = `INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'session_ended')`;
-    db.run(insertNotificationSql, [sitIn.user_id, notificationTitle, notificationMessage], (err) => {
-      if (err) {
-        console.error("Error creating notification:", err);
-      } else {
-        console.log("Notification created for user:", sitIn.user_id);
-      }
-    });
+    db.run(
+      insertNotificationSql,
+      [sitIn.user_id, notificationTitle, notificationMessage],
+      (err) => {
+        if (err) {
+          console.error("Error creating notification:", err);
+        } else {
+          console.log("Notification created for user:", sitIn.user_id);
+        }
+      },
+    );
 
     res.json({
       success: true,
@@ -1307,7 +1334,10 @@ app.post("/api/user/notifications/:id/read", (req, res) => {
       console.error("Mark notification as read error:", err);
       return res
         .status(500)
-        .json({ success: false, message: "Failed to mark notification as read" });
+        .json({
+          success: false,
+          message: "Failed to mark notification as read",
+        });
     }
 
     res.json({
@@ -1333,12 +1363,153 @@ app.post("/api/user/notifications/read-all", (req, res) => {
       console.error("Mark all notifications as read error:", err);
       return res
         .status(500)
-        .json({ success: false, message: "Failed to mark notifications as read" });
+        .json({
+          success: false,
+          message: "Failed to mark notifications as read",
+        });
     }
 
     res.json({
       success: true,
       message: "All notifications marked as read",
+    });
+  });
+});
+
+// ===== Admin Stats API =====
+app.get("/api/admin/stats", (req, res) => {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const stats = {};
+  
+  // Get total students
+  db.get("SELECT COUNT(*) as count FROM users WHERE isAdmin = 0", (err, row) => {
+    if (err) return res.status(500).json({ success: false, message: "Error fetching student count" });
+    stats.totalStudents = row.count;
+
+    // Get active sit-ins
+    db.get("SELECT COUNT(*) as count FROM sit_in WHERE status = 'Active'", (err, row) => {
+      if (err) return res.status(500).json({ success: false, message: "Error fetching active sit-ins" });
+      stats.activeSitIns = row.count;
+
+      // Get total sessions (total finished sit-ins + active)
+      db.get("SELECT COUNT(*) as count FROM sit_in", (err, row) => {
+        if (err) return res.status(500).json({ success: false, message: "Error fetching total sessions" });
+        stats.totalSessions = row.count;
+
+        // Get pending reservations
+        db.get("SELECT COUNT(*) as count FROM reservations WHERE status = 'Pending'", (err, row) => {
+          if (err) return res.status(500).json({ success: false, message: "Error fetching pending reservations" });
+          stats.pendingReservations = row.count;
+
+          res.json({ success: true, stats });
+        });
+      });
+    });
+  });
+});
+
+// ===== Create Reservation API (Student) =====
+app.post("/api/reservations", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not authenticated" });
+  }
+
+  const { lab, purpose, reservationDate } = req.body;
+  if (!lab || !purpose || !reservationDate) {
+    return res.status(400).json({ success: false, message: "All fields are required" });
+  }
+
+  const userId = req.session.user.id;
+  const sql = `INSERT INTO reservations (user_id, lab, purpose, reservation_date) VALUES (?, ?, ?, ?)`;
+  
+  db.run(sql, [userId, lab, purpose, reservationDate], function (err) {
+    if (err) {
+      console.error("Error creating reservation:", err);
+      return res.status(500).json({ success: false, message: "Failed to create reservation" });
+    }
+    res.json({ success: true, message: "Reservation submitted successfully!" });
+  });
+});
+
+// ===== Get Student Reservations API =====
+app.get("/api/user/reservations", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: "Not authenticated" });
+  }
+  const userId = req.session.user.id;
+  const sql = `SELECT * FROM reservations WHERE user_id = ? ORDER BY created_at DESC`;
+
+  db.all(sql, [userId], (err, rows) => {
+    if (err) {
+      console.error("Error getting user reservations:", err);
+      return res.status(500).json({ success: false, message: "Failed to fetch reservations" });
+    }
+    res.json({ success: true, reservations: rows });
+  });
+});
+
+// ===== Get All Pending Reservations API (Admin) =====
+app.get("/api/admin/reservations", (req, res) => {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const sql = `
+    SELECT 
+      r.id, r.user_id, r.lab, r.purpose, r.reservation_date, r.status, r.created_at,
+      u.idNumber, u.firstName, u.lastName
+    FROM reservations r
+    JOIN users u ON r.user_id = u.id
+    WHERE r.status = 'Pending'
+    ORDER BY r.created_at ASC
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error("Error getting admin reservations:", err);
+      return res.status(500).json({ success: false, message: "Failed to fetch reservations" });
+    }
+    res.json({ success: true, reservations: rows });
+  });
+});
+
+// ===== Update Reservation Status API (Admin) =====
+app.post("/api/admin/reservations/:id/status", (req, res) => {
+  if (!req.session.user || !req.session.user.isAdmin) {
+    return res.status(403).json({ success: false, message: "Access denied" });
+  }
+
+  const reservationId = req.params.id;
+  const { status } = req.body;
+
+  if (status !== 'Approved' && status !== 'Declined') {
+    return res.status(400).json({ success: false, message: "Invalid status" });
+  }
+
+  // Get reservation first to notify the correct user
+  const getSql = `SELECT * FROM reservations WHERE id = ?`;
+  db.get(getSql, [reservationId], (err, reservation) => {
+    if (err || !reservation) {
+      return res.status(404).json({ success: false, message: "Reservation not found" });
+    }
+
+    const updateSql = `UPDATE reservations SET status = ? WHERE id = ?`;
+    db.run(updateSql, [status, reservationId], function(err) {
+      if (err) {
+        return res.status(500).json({ success: false, message: "Failed to update reservation" });
+      }
+
+      // Create Notification
+      const title = `Reservation ${status}`;
+      const message = `Your reservation request for ${reservation.lab} on ${reservation.reservation_date} for ${reservation.purpose} has been ${status.toLowerCase()}.`;
+      const notifSql = `INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'reservation_update')`;
+      
+      db.run(notifSql, [reservation.user_id, title, message]);
+
+      res.json({ success: true, message: `Reservation ${status.toLowerCase()} successfully!` });
     });
   });
 });

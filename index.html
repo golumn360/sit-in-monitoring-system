@@ -205,7 +205,7 @@
               <li><a href="#" id="userHomeLink">Home</a></li>
               <li><a href="#" id="editProfileLink">Edit Profile</a></li>
               <li><a href="#" id="userHistoryLink">History</a></li>
-              <li><a href="#">Reservation</a></li>
+              <li><a href="#" id="userReservationLink">Reservation</a></li>
               <li>
                 <a href="#" id="userNotificationLink" class="notification-link">
                   <span class="notification-icon">&#128276;</span>
@@ -414,7 +414,7 @@
               <li>
                 <a href="#" id="feedbackReportsLink">Feedback Reports</a>
               </li>
-              <li><a href="#">Reservation</a></li>
+              <li><a href="#" id="adminReservationLink">Reservation</a></li>
               <li>
                 <a class="logout-btn" href="#" id="adminLogoutBtn">Log Out</a>
               </li>
@@ -427,19 +427,19 @@
             <div class="stats-grid">
               <div class="stat-card">
                 <h4>Total Students</h4>
-                <p class="stat-number">0</p>
+                <p id="statTotalStudents" class="stat-number">0</p>
               </div>
               <div class="stat-card">
                 <h4>Active Sit-ins</h4>
-                <p class="stat-number">0</p>
+                <p id="statActiveSitIns" class="stat-number">0</p>
               </div>
               <div class="stat-card">
                 <h4>Total Sessions</h4>
-                <p class="stat-number">0</p>
+                <p id="statTotalSessions" class="stat-number">0</p>
               </div>
               <div class="stat-card">
                 <h4>Pending Reservations</h4>
-                <p class="stat-number">0</p>
+                <p id="statPendingReservations" class="stat-number">0</p>
               </div>
             </div>
           </div>
@@ -942,6 +942,110 @@
           </div>
         </div>
       </div>
+      <!-- User Reservation Page -->
+      <section class="user-reservation-page" id="userReservationPage" style="display: none;">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Reservation</h1>
+            </div>
+            <ul>
+              <li><a href="#" id="backToUserDashboardFromReservation">Home</a></li>
+            </ul>
+          </div>
+        </nav>
+        <div class="dashboard-content">
+          <div class="reservation-form-container">
+            <h3>Make a Reservation</h3>
+            <form id="reservationForm">
+              <div class="form-group">
+                <label for="reservationLab">Laboratory</label>
+                <select id="reservationLab" required>
+                  <option value="" disabled selected>Select Lab</option>
+                  <option value="524">Lab 524</option>
+                  <option value="526">Lab 526</option>
+                  <option value="530">Lab 530</option>
+                  <option value="522">Lab 522</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reservationPurpose">Purpose</label>
+                <select id="reservationPurpose" required>
+                  <option value="" disabled selected>Select Purpose</option>
+                  <option value="Python">Python</option>
+                  <option value="C programming">C programming</option>
+                  <option value="Java">Java</option>
+                  <option value="C#">C#</option>
+                  <option value="JavaScript">JavaScript</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reservationDate">Preferred Date</label>
+                <input type="date" id="reservationDate" required />
+              </div>
+              <button type="submit" class="save-btn">Submit Reservation</button>
+              <p id="reservationMessage" style="text-align: center; margin-top: 10px;"></p>
+            </form>
+          </div>
+
+          <div class="reservation-history">
+            <h3>My Reservations</h3>
+            <div class="history-table-container">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Lab</th>
+                    <th>Purpose</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="userReservationTableBody">
+                  <tr>
+                    <td colspan="4" style="text-align: center;">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Reservation Page -->
+      <section class="admin-reservation-page" id="adminReservationPage" style="display: none;">
+        <nav class="dashboard-navbar">
+          <div class="dashnav">
+            <div class="navbar-logo">
+              <h1>Review Reservations</h1>
+            </div>
+            <ul>
+              <li><a href="#" id="backToAdminDashboardFromReservation">Back to Dashboard</a></li>
+            </ul>
+          </div>
+        </nav>
+        <div class="admin-content" style="padding: 20px;">
+          <h2>Pending Reservations</h2>
+          <div class="sit-in-table-container">
+            <table class="sit-in-table">
+              <thead>
+                <tr>
+                  <th>ID Number</th>
+                  <th>Name</th>
+                  <th>Lab</th>
+                  <th>Purpose</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminReservationTableBody">
+                <tr>
+                  <td colspan="6" style="text-align: center;">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="script.js"></script>

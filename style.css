@@ -1588,7 +1588,9 @@ label {
 .view-sit-in-records-page,
 .student-information-admin,
 .edit-profile-page,
-.admin-dashboard {
+.admin-dashboard,
+.user-reservation-page,
+.admin-reservation-page {
   display: none;
   height: 100vh;
   overflow: hidden;
@@ -1793,4 +1795,54 @@ label {
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Reservation Styles */
+.reservation-form-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.reservation-form-container h3 {
+  margin-top: 0;
+  color: #0077cc;
+  margin-bottom: 15px;
+}
+
+.reservation-form-container .form-group {
+  margin-bottom: 15px;
+}
+
+.reservation-form-container label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.reservation-form-container select,
+.reservation-form-container input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.reservation-history h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 20px;
+  background-color: white;
+  border-radius: 15px;
+  border: black 2px solid;
+  margin: 10px 20px 20px 20px;
+  overflow-y: auto;
 }

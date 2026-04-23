@@ -56,6 +56,14 @@ function hideAll() {
   if (feedbackReportsPage) {
     feedbackReportsPage.style.display = "none";
   }
+  const userReservationPage = document.getElementById("userReservationPage");
+  if (userReservationPage) {
+    userReservationPage.style.display = "none";
+  }
+  const adminReservationPage = document.getElementById("adminReservationPage");
+  if (adminReservationPage) {
+    adminReservationPage.style.display = "none";
+  }
 }
 
 // Check if user is logged in on page load
@@ -83,6 +91,22 @@ function displayAdminDashboard() {
   adminDashboard.style.display = "block";
   loadAdminAnnouncements();
   loadStudents();
+  loadAdminStats();
+}
+
+async function loadAdminStats() {
+  try {
+    const response = await fetch("/api/admin/stats");
+    const data = await response.json();
+    if (data.success) {
+      document.getElementById("statTotalStudents").textContent = data.stats.totalStudents;
+      document.getElementById("statActiveSitIns").textContent = data.stats.activeSitIns;
+      document.getElementById("statTotalSessions").textContent = data.stats.totalSessions;
+      document.getElementById("statPendingReservations").textContent = data.stats.pendingReservations;
+    }
+  } catch (error) {
+    console.error("Error loading admin stats:", error);
+  }
 }
 
 // Student Management Functions
@@ -1674,6 +1698,7 @@ if (userHomeLink) {
   userHomeLink.addEventListener("click", function (e) {
     e.preventDefault();
     displayUserDashboard(currentUser);
+    loadNotificationCount();
   });
 }
 
@@ -1688,6 +1713,7 @@ if (backToUserDashboard) {
   backToUserDashboard.addEventListener("click", function (e) {
     e.preventDefault();
     displayUserDashboard(currentUser);
+    loadNotificationCount();
   });
 }
 
@@ -1914,6 +1940,184 @@ window.addEventListener("click", function (e) {
 });
 
 // ===== End of User History and Notification Functionality =====
+
+// ===== Reservation Functionality =====
+
+// Elements
+const userReservationPage = document.getElementById("userReservationPage");
+const adminReservationPage = document.getElementById("adminReservationPage");
+const userReservationLink = document.getElementById("userReservationLink");
+const adminReservationLink = document.getElementById("adminReservationLink");
+const backToUserDashboardFromReservation = document.getElementById("backToUserDashboardFromReservation");
+const backToAdminDashboardFromReservation = document.getElementById("backToAdminDashboardFromReservation");
+const reservationForm = document.getElementById("reservationForm");
+
+// Navigation
+if (userReservationLink) {
+  userReservationLink.addEventListener("click", function(e) {
+    e.preventDefault();
+    hideAll();
+    if (userReservationPage) {
+      userReservationPage.style.display = "block";
+      loadUserReservations();
+    }
+  });
+}
+
+if (backToUserDashboardFromReservation) {
+  backToUserDashboardFromReservation.addEventListener("click", function(e) {
+    e.preventDefault();
+    goToDashboard();
+  });
+}
+
+if (adminReservationLink) {
+  adminReservationLink.addEventListener("click", function(e) {
+    e.preventDefault();
+    hideAll();
+    if (adminReservationPage) {
+      adminReservationPage.style.display = "block";
+      loadAdminReservations();
+    }
+  });
+}
+
+if (backToAdminDashboardFromReservation) {
+  backToAdminDashboardFromReservation.addEventListener("click", function(e) {
+    e.preventDefault();
+    displayAdminDashboard();
+  });
+}
+
+// User submit reservation
+if (reservationForm) {
+  reservationForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    
+    const lab = document.getElementById("reservationLab").value;
+    const purpose = document.getElementById("reservationPurpose").value;
+    const reservationDate = document.getElementById("reservationDate").value;
+    const messageEl = document.getElementById("reservationMessage");
+
+    messageEl.textContent = "Submitting...";
+    messageEl.style.color = "blue";
+
+    try {
+      const response = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lab, purpose, reservationDate })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        messageEl.textContent = data.message;
+        messageEl.style.color = "green";
+        reservationForm.reset();
+        loadUserReservations();
+        
+        setTimeout(() => { messageEl.textContent = ""; }, 3000);
+      } else {
+        messageEl.textContent = data.message;
+        messageEl.style.color = "red";
+      }
+    } catch (error) {
+      console.error("Reservation error:", error);
+      messageEl.textContent = "Failed to submit reservation";
+      messageEl.style.color = "red";
+    }
+  });
+}
+
+// Load user reservations
+async function loadUserReservations() {
+  const tableBody = document.getElementById("userReservationTableBody");
+  if (!tableBody) return;
+
+  try {
+    const response = await fetch("/api/user/reservations");
+    const data = await response.json();
+
+    if (data.success) {
+      if (data.reservations.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center;">No reservations found</td></tr>`;
+      } else {
+        tableBody.innerHTML = data.reservations.map(res => `
+          <tr>
+            <td>Lab ${res.lab}</td>
+            <td>${res.purpose}</td>
+            <td>${res.reservation_date}</td>
+            <td><strong>${res.status}</strong></td>
+          </tr>
+        `).join("");
+      }
+    }
+  } catch (error) {
+    console.error("Error loading user reservations:", error);
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Error loading</td></tr>`;
+  }
+}
+
+// Load admin reservations
+async function loadAdminReservations() {
+  const tableBody = document.getElementById("adminReservationTableBody");
+  if (!tableBody) return;
+
+  try {
+    const response = await fetch("/api/admin/reservations");
+    const data = await response.json();
+
+    if (data.success) {
+      if (data.reservations.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No pending reservations</td></tr>`;
+      } else {
+        tableBody.innerHTML = data.reservations.map(res => `
+          <tr>
+            <td>${res.idNumber}</td>
+            <td>${res.firstName} ${res.lastName}</td>
+            <td>Lab ${res.lab}</td>
+            <td>${res.purpose}</td>
+            <td>${res.reservation_date}</td>
+            <td>
+              <button class="action-btn" style="background-color: #28a745; margin-right: 5px;" onclick="updateReservationStatus(${res.id}, 'Approved')">Approve</button>
+              <button class="action-btn" onclick="updateReservationStatus(${res.id}, 'Declined')">Decline</button>
+            </td>
+          </tr>
+        `).join("");
+      }
+    }
+  } catch (error) {
+    console.error("Error loading admin reservations:", error);
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Error loading</td></tr>`;
+  }
+}
+
+// Admin update reservation
+async function updateReservationStatus(id, status) {
+  if (!confirm(`Are you sure you want to ${status.toLowerCase()} this reservation?`)) return;
+
+  try {
+    const response = await fetch(`/api/admin/reservations/${id}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    const data = await response.json();
+    if (data.success) {
+      loadAdminReservations();
+      loadAdminStats(); // Refresh stats count
+    } else {
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error("Error updating reservation:", error);
+    alert("Failed to update reservation");
+  }
+}
+window.updateReservationStatus = updateReservationStatus;
+
+// ===== End Reservation Functionality =====
 
 // Initialize - check auth status on page load
 checkAuth();
