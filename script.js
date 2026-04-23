@@ -2048,7 +2048,7 @@ async function loadUserReservations() {
             <td>Lab ${res.lab}</td>
             <td>${res.purpose}</td>
             <td>${res.reservation_date}</td>
-            <td><strong>${res.status}</strong></td>
+            <td><span class="status-badge status-${res.status.toLowerCase()}">${res.status}</span></td>
           </tr>
         `).join("");
       }
@@ -2081,7 +2081,7 @@ async function loadAdminReservations() {
             <td>${res.reservation_date}</td>
             <td>
               <button class="action-btn" style="background-color: #28a745; margin-right: 5px;" onclick="updateReservationStatus(${res.id}, 'Approved')">Approve</button>
-              <button class="action-btn" onclick="updateReservationStatus(${res.id}, 'Declined')">Decline</button>
+              <button class="action-btn" style="background-color: #dc3545;" onclick="updateReservationStatus(${res.id}, 'Declined')">Decline</button>
             </td>
           </tr>
         `).join("");

@@ -1846,3 +1846,25 @@ label {
   margin: 10px 20px 20px 20px;
   overflow-y: auto;
 }
+
+/* Clean Reservation Styles */
+.reservation-card { flex: 1; background-color: white; padding: 25px; border-radius: 15px; border: black 2px solid; overflow-y: auto; min-height: 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.reservation-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+.reservation-form-container { flex: 1; }
+.reservation-form-container h3 { text-align: center; color: #333; margin-top: 0; margin-bottom: 25px; font-size: 1.4rem; border-bottom: 2px solid #0077cc; padding-bottom: 10px; }
+.reservation-form-container .form-group { margin-bottom: 20px; }
+.reservation-form-container label { display: block; font-weight: 600; margin-bottom: 10px; color: #444; font-size: 14px; }
+.reservation-form-container select, .reservation-form-container input[type=" date\] { width: 100%; padding: 12px 15px; border: 2px solid #e1e1e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 14px; transition: all 0.3s ease; background-color: #f9f9f9; }
+.reservation-form-container select:focus, .reservation-form-container input[type=\date\]:focus { outline: none; border-color: #0077cc; background-color: white; box-shadow: 0 0 10px rgba(0, 119, 204, 0.15); }
+.reservation-history { flex: 2; }
+.reservation-history h3 { text-align: center; color: #333; margin-top: 0; margin-bottom: 25px; font-size: 1.4rem; border-bottom: 2px solid #0077cc; padding-bottom: 10px; }
+.admin-content { flex: 1; padding: 30px; background-color: white; border-radius: 20px; border: black 2px solid; margin: 20px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+.admin-content h2 { color: #333; margin-top: 0; margin-bottom: 30px; font-size: 1.8rem; font-weight: 700; border-bottom: 3px solid #0077cc; padding-bottom: 12px; display: inline-block; }
+
+.reservation-form-container .save-btn { width: 100%; padding: 15px; background-color: #0077cc; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
+.reservation-form-container .save-btn:hover { background-color: #005fa3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 119, 204, 0.3); }
+
+.status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+.status-pending { background-color: #ffeeba; color: #856404; }
+.status-approved { background-color: #d4edda; color: #155724; }
+.status-declined { background-color: #f8d7da; color: #721c24; }
