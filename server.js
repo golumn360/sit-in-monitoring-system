@@ -1514,6 +1514,33 @@ app.post("/api/admin/reservations/:id/status", (req, res) => {
   });
 });
 
+// ===== Leaderboard API =====
+app.get("/api/leaderboard", (req, res) => {
+  const sql = `
+    SELECT 
+      u.firstName, 
+      u.lastName, 
+      u.course, 
+      u.profilePic,
+      COUNT(s.id) as sessionCount
+    FROM users u
+    LEFT JOIN sit_in s ON u.id = s.user_id
+    WHERE u.isAdmin = 0
+    GROUP BY u.id
+    ORDER BY sessionCount DESC
+    LIMIT 5
+  `;
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error("Leaderboard fetch error:", err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch leaderboard" });
+    }
+    res.json({ success: true, leaderboard: rows });
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

@@ -380,6 +380,7 @@ function setupStudentManagement() {
 document.addEventListener("DOMContentLoaded", function () {
   setupStudentManagement();
   setupSuccessModals();
+  loadLeaderboard();
 });
 
 // Setup success modal event listeners
@@ -429,8 +430,42 @@ function setupSuccessModals() {
       logoutSuccessModal.style.display = "none";
       hideAll();
       landingPage.style.display = "block";
+      loadLeaderboard();
     }
   });
+}
+
+// Load and render leaderboard
+async function loadLeaderboard() {
+  const leaderboardList = document.getElementById("leaderboardList");
+  if (!leaderboardList) return;
+
+  try {
+    const response = await fetch("/api/leaderboard");
+    const data = await response.json();
+
+    if (data.success && data.leaderboard.length > 0) {
+      leaderboardList.innerHTML = data.leaderboard
+        .map((user, index) => {
+          const profilePic = user.profilePic || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+          return `
+          <div class="leaderboard-card">
+            <div class="rank-badge">${index + 1}</div>
+            <img src="${profilePic}" alt="${user.firstName}" class="leaderboard-img">
+            <div class="leaderboard-name">${user.firstName} ${user.lastName}</div>
+            <div class="leaderboard-course">${user.course || "N/A"}</div>
+            <div class="leaderboard-count">Sessions <span>${user.sessionCount}</span></div>
+          </div>
+        `;
+        })
+        .join("");
+    } else {
+      leaderboardList.innerHTML = "<p style='color: rgba(255,255,255,0.6); text-align: center; width: 100%'>No session data available yet.</p>";
+    }
+  } catch (error) {
+    console.error("Error loading leaderboard:", error);
+    leaderboardList.innerHTML = "<p style='color: #ff6b6b; text-align: center; width: 100%'>Error loading leaderboard.</p>";
+  }
 }
 
 // Show login success modal
@@ -509,6 +544,7 @@ registerNow.addEventListener("click", function () {
 backButton.addEventListener("click", function () {
   hideAll();
   landingPage.style.display = "block";
+  loadLeaderboard();
 });
 
 loginLink.addEventListener("click", function (e) {
@@ -520,6 +556,7 @@ loginLink.addEventListener("click", function (e) {
 backLogin.addEventListener("click", function () {
   hideAll();
   landingPage.style.display = "block";
+  loadLeaderboard();
 });
 
 // Registration Form Handler
